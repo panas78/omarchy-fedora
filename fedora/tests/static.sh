@@ -123,6 +123,24 @@ t "shim passes through unmapped names" bash -c '
   [[ "$(_omarchy_pkg_resolve tailscale)" == "fedora|tailscale||||" ]]
 '
 
+echo "== Retired packages =="
+# Upstream drops packages over time; omarchy update must converge, not just add.
+t "retired-packages.conf parses" python3 -c "
+seen = set()
+for i, line in enumerate(open('fedora/mappings/retired-packages.conf'), 1):
+    line = line.split('#')[0].strip()
+    if not line:
+        continue
+    assert ' ' not in line, ('space in name', i, line)
+    assert line not in seen, ('duplicate', line)
+    seen.add(line)
+print(len(seen), 'retired packages')
+"
+t "retired lookup works" bash -c "
+  . fedora/scripts/lib/deps.sh
+  omarchy_fedora_is_retired clang && ! omarchy_fedora_is_retired bash
+"
+
 echo "== First-party RPM scaffold: manifest + spec + build helper =="
 t "fedora/rpm/manifest.yaml parses" python3 -c "
 import glob, os, yaml

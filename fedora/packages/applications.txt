@@ -1,5 +1,9 @@
 # Fedora GUI application packages for Omarchy Quattro
 # Graphically-installed user applications (Fedora names).
+#
+# kdenlive, obs-studio and xournalpp are retired from upstream Omarchy (see
+# fedora/mappings/retired-packages.conf) and skipped at install time; kept here
+# only because upstream still lists them until the next vendored sync.
 
 evince
 gnome-disk-utility

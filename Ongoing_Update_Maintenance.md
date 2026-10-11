@@ -73,11 +73,13 @@ Most package changes are **not** COPR builds. Resolve a package in this order:
 | 2 | **Existing COPR / RPM Fusion** (`nett00n/hyprland`, `atim/*`, RPM Fusion) | same, plus the repo is already enabled |
 | 3 | **Flathub** | `source: flatpak` with the app id |
 | 4 | **Omarchy's own first-party binary** (aether, cliamp, disktree-bin, elsewhen, gliff, herdr, hype, hyprland-preview-share-picker, monologue, omacalc, omacut, omapresent, omarchy-hyprland-titlebars, omawrite, omasnap, owe, owe-lockfeed, signed, superwhisper-bin, tensaku, try, ttfx, and future Omarchy-authored tools) | write a SPEC under `fedora/rpm/`, mark it `verified`, build + submit to `whelanh/omarchy` |
+| 5 | **Removed upstream** | add the Fedora name to `fedora/mappings/retired-packages.conf`; `omarchy update` then skips installing it and removes it if present (dependency-aware) |
 
 Only row 4 requires building in the `whelanh/omarchy` COPR. Everything else is a
 mapping + package-list entry. (Examples already shipped this way: `qrencode`,
 `ddcutil`, `zbar`, `dua→dua` are plain Fedora mappings; `tensaku`/`ttfx` are
-COPR first-party.)
+COPR first-party.) Removals are handled by the retired list (row 5), so
+`omarchy update` converges on upstream instead of only ever adding packages.
 
 ---
 

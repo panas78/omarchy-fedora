@@ -219,6 +219,8 @@ backfill_packages() {
   if [ "$INSTALL_FIRSTPARTY" = 1 ]; then
     omarchy_fedora_install_firstparty || warn "first-party package backfill failed"
   fi
+  log "== Removing packages retired from upstream Omarchy =="
+  omarchy_fedora_prune_retired || warn "retired-package cleanup failed"
 }
 
 # ---------------------------------------------------------------------------

@@ -130,6 +130,11 @@ Caveats:
   (`--no-firstparty` to skip); all are `verified` in `fedora/rpm/manifest.yaml`.
 - `gum` and `git-delta` were added to `fedora/packages/base.txt` as
   dependencies of the CLI layer.
+- `omarchy update` converges on upstream, not just adds: packages listed in
+  `fedora/mappings/retired-packages.conf` are never installed and are removed on
+  update (dependency-aware — anything another installed package still requires
+  is left in place with a warning). Set `OMARCHY_FEDORA_NO_PRUNE=1` to skip.
+  Add a name there when upstream drops it from `omarchy-base.packages`.
 - The SUPER+SPACE **Install** rows call `omarchy-pkg-add`/`-present` with
   Arch/AUR names. `fedora/mappings/menu-packages.conf` (read at runtime by
   `fedora/scripts/lib/pkg.sh`) translates those to Fedora package names, COPRs,

@@ -20,6 +20,36 @@ OMARCHY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 RESOLVE="$OMARCHY_ROOT/fedora/scripts/lib/resolve.py"
 REPOS_YAML="$OMARCHY_ROOT/fedora/mappings/repositories.yaml"
 PACKAGES_DIR="$OMARCHY_ROOT/fedora/packages"
+RETIRED_FILE="$OMARCHY_ROOT/fedora/mappings/retired-packages.conf"
+
+# ---------------------------------------------------------------------------
+# Retired packages
+# ---------------------------------------------------------------------------
+# Packages Omarchy has dropped from its default set. We never install them and
+# remove any that are already present (see omarchy_fedora_prune_retired),
+# mirroring upstream's retired-package cleanup. This keeps `omarchy update`
+# converging on upstream instead of only ever adding packages.
+
+declare -A _OMARCHY_RETIRED=()
+_OMARCHY_RETIRED_LOADED=""
+
+_omarchy_retired_load() {
+  [ -n "$_OMARCHY_RETIRED_LOADED" ] && return 0
+  _OMARCHY_RETIRED_LOADED=1
+  [ -r "$RETIRED_FILE" ] || return 0
+  local line
+  while IFS= read -r line || [ -n "$line" ]; do
+    line="${line%%#*}"
+    line="${line//[[:space:]]/}"
+    [ -n "$line" ] && _OMARCHY_RETIRED["$line"]=1
+  done < "$RETIRED_FILE"
+}
+
+# True if the Fedora package name is retired from Omarchy's default set.
+omarchy_fedora_is_retired() {
+  _omarchy_retired_load
+  [ -n "${_OMARCHY_RETIRED[$1]:-}" ]
+}
 
 # ---------------------------------------------------------------------------
 # Repository management
@@ -118,7 +148,48 @@ omarchy_fedora_enable_rpmfusion() {
 # Package installation
 # ---------------------------------------------------------------------------
 
-# Install a category list file (fedora/packages/<name>.txt). Skips comments.
+# Remove packages Omarchy has retired from its default set, if installed.
+# Dependency-aware: a package another installed package still requires is left
+# in place (rpm -e --test checks reverse dependencies). Batch first, like
+# upstream, so co-dependent retired packages go together in one transaction.
+# Set OMARCHY_FEDORA_NO_PRUNE=1 to skip.
+omarchy_fedora_prune_retired() {
+  _omarchy_retired_load
+  (( ${#_OMARCHY_RETIRED[@]} > 0 )) || return 0
+  if [ -n "${OMARCHY_FEDORA_NO_PRUNE:-}" ]; then
+    echo "omarchy: retired-package cleanup disabled (OMARCHY_FEDORA_NO_PRUNE)"
+    return 0
+  fi
+
+  local p
+  local -a batch=()
+  for p in "${!_OMARCHY_RETIRED[@]}"; do
+    rpm -q "$p" >/dev/null 2>&1 && batch+=("$p")
+  done
+  (( ${#batch[@]} > 0 )) || return 0
+
+  echo "omarchy: removing retired packages: ${batch[*]}"
+  if rpm -e --test "${batch[@]}" >/dev/null 2>&1; then
+    _omarchy_dnf remove -y "${batch[@]}" \
+      || { echo "omarchy: could not remove retired packages: ${batch[*]}" >&2; return 1; }
+    return 0
+  fi
+
+  # Something in the batch is still required; fall back to per-package removal.
+  local rc=0
+  for p in "${batch[@]}"; do
+    if rpm -e --test "$p" >/dev/null 2>&1; then
+      _omarchy_dnf remove -y "$p" \
+        || { echo "omarchy: could not remove retired '$p'" >&2; rc=1; }
+    else
+      echo "omarchy: leaving retired '$p' installed (still required by another package)" >&2
+    fi
+  done
+  return $rc
+}
+
+# Install a category list file (fedora/packages/<name>.txt). Skips comments and
+# any package Omarchy has retired.
 omarchy_fedora_install_list() {
   local list="$1"
   shift
@@ -127,13 +198,18 @@ omarchy_fedora_install_list() {
     echo "omarchy: package list not found: $list" >&2
     return 2
   fi
-  local pkgs=()
+  local pkgs=() line x
   while IFS= read -r line; do
     line="${line%%#*}"          # strip comments
     line="${line//[[:space:]]/}" # strip whitespace
-    [ -n "$line" ] && pkgs+=("$line")
+    [ -n "$line" ] || continue
+    omarchy_fedora_is_retired "$line" && continue
+    pkgs+=("$line")
   done < "$list"
-  pkgs+=("${extra[@]}")
+  for x in "${extra[@]}"; do
+    omarchy_fedora_is_retired "$x" && continue
+    pkgs+=("$x")
+  done
   if (( ${#pkgs[@]} > 0 )); then
     omarchy_pkg_install "${pkgs[@]}" || return 1
   fi
@@ -160,11 +236,16 @@ omarchy_fedora_install_base() {
 omarchy_fedora_install_desktop() {
   local -a desktop=()
   local -a copr_pkgs=()
-  while IFS= read -r p; do [ -n "$p" ] && copr_pkgs+=("$p"); done \
-    < <(python3 "$RESOLVE" --copr nett00n/hyprland)
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    omarchy_fedora_is_retired "$p" && continue
+    copr_pkgs+=("$p")
+  done < <(python3 "$RESOLVE" --copr nett00n/hyprland)
   while IFS= read -r line; do
     line="${line%%#*}"; line="${line//[[:space:]]/}"
-    [ -n "$line" ] && desktop+=("$line")
+    [ -n "$line" ] || continue
+    omarchy_fedora_is_retired "$line" && continue
+    desktop+=("$line")
   done < "$PACKAGES_DIR/desktop.txt"
   desktop+=("${copr_pkgs[@]}")
   omarchy_pkg_install "${desktop[@]}" || return 1
@@ -186,8 +267,11 @@ omarchy_fedora_install_applications() {
 # exact set.
 omarchy_fedora_install_firstparty() {
   local -a firstparty=()
-  while IFS= read -r p; do [ -n "$p" ] && firstparty+=("$p"); done \
-    < <(python3 "$RESOLVE" --copr whelanh/omarchy)
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    omarchy_fedora_is_retired "$p" && continue
+    firstparty+=("$p")
+  done < <(python3 "$RESOLVE" --copr whelanh/omarchy)
   if (( ${#firstparty[@]} == 0 )); then
     echo "omarchy: no first-party packages resolved from whelanh/omarchy" >&2
     return 0
