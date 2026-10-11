@@ -101,6 +101,12 @@ packages:
     repository: whelanh/omarchy
     rpm: fedora/rpm/omapresent/omapresent.spec
     note: Markdown presentation app, the successor to hype (which upstream still ships); Qt6 Quick + QtWebEngine, source-built. Installed via whelanh/omarchy even though it is not yet in omarchy-base.packages.
+  omarchy-hyprland-titlebars:
+    package: omarchy-hyprland-titlebars
+    source: copr
+    repository: whelanh/omarchy
+    rpm: fedora/rpm/omarchy-hyprland-titlebars/omarchy-hyprland-titlebars.spec
+    note: Hyprland plugin for Omarchy's floating-window titlebars; cmake, built against hyprland-devel from nett00n/hyprland. Must be rebuilt when Hyprland changes.
   omasnap:
     package: omasnap
     source: copr
@@ -119,6 +125,12 @@ packages:
     repository: whelanh/omarchy
     rpm: fedora/rpm/owe-lockfeed/owe-lockfeed.spec
     note: Qt6 QML module Owe.LockFeed for the lock screen; same omacom/owe source as `owe`, no AUR counterpart.
+  signed:
+    package: signed
+    source: copr
+    repository: whelanh/omarchy
+    rpm: fedora/rpm/signed/signed.spec
+    note: Omarchy PDF signing app; Qt6/qmake6, XDG desktop portal + qpdf. Upstream lists it in omarchy-base.packages, so it is in the default first-party set.
   superwhisper-bin:
     package: superwhisper-bin
     source: copr
@@ -191,7 +203,11 @@ packages:
   fakeroot:              { package: fakeroot, source: fedora }
   fastfetch:             { package: fastfetch, source: fedora }
   fcitx5:                { package: fcitx5, source: fedora }
+  fcitx5-chewing:        { package: fcitx5-chewing, source: fedora }
+  fcitx5-chinese-addons: { package: fcitx5-chinese-addons, source: fedora }
   fcitx5-gtk:            { package: fcitx5-gtk, source: fedora }
+  fcitx5-hangul:         { package: fcitx5-hangul, source: fedora }
+  fcitx5-mozc:           { package: fcitx5-mozc, source: fedora }
   fcitx5-qt:             { package: fcitx5-qt, source: fedora }
   fd:
     package: fd-find

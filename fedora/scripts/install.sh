@@ -172,8 +172,9 @@ install_repos() {
     || die "failed to enable gpu-screen-recorder COPR"
   # First-party Omarchy packages (aether, cliamp, disktree-bin, elsewhen, gliff,
   # herdr, hype, hyprland-preview-share-picker, monologue, omacalc, omacut,
-  # omapresent, omawrite, omasnap, owe, owe-lockfeed, superwhisper-bin, tensaku,
-  # try, ttfx) live in the whelanh/omarchy COPR (see fedora/rpm/copr/README.md).
+  # omapresent, omarchy-hyprland-titlebars, omawrite, omasnap, owe, owe-lockfeed,
+  # signed, superwhisper-bin, tensaku, try, ttfx) live in the whelanh/omarchy
+  # COPR (see fedora/rpm/copr/README.md).
   if [ "$INSTALL_FIRSTPARTY" = 1 ]; then
     omarchy_fedora_enable_optional_coprs whelanh/omarchy \
       || die "failed to enable whelanh/omarchy COPR"
@@ -483,10 +484,11 @@ install_omarchy_tree() {
     sudo chown -R root:root "$dest"
   fi
   log "Omarchy tree installed to $dest"
-  log "NOTE: the 20 first-party packages (aether, cliamp, disktree-bin," \
+  log "NOTE: the 22 first-party packages (aether, cliamp, disktree-bin," \
        "elsewhen, gliff, herdr, hype, hyprland-preview-share-picker," \
-       "monologue, omacalc, omacut, omapresent, omawrite, omasnap, owe," \
-       "owe-lockfeed, superwhisper-bin, tensaku, try, ttfx) are packaged" \
+       "monologue, omacalc, omacut, omapresent, omarchy-hyprland-titlebars," \
+       "omawrite, omasnap, owe, owe-lockfeed, signed, superwhisper-bin," \
+       "tensaku, try, ttfx) are packaged" \
        "under fedora/rpm and ship from the whelanh/omarchy COPR (see" \
        "fedora/rpm/copr/README.md)."
 }

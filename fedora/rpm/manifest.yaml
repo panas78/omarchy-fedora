@@ -137,6 +137,16 @@ packages:
     status: verified
     version: 0.1.3
     note: Markdown presentation app (successor to hype); Qt6 Quick + QtWebEngine, ships a bundled agent skill + welcome deck and theme-refresh hook. Container-built OK.
+  omarchy-hyprland-titlebars:
+    repo: https://github.com/omacom/omarchy-hyprland-titlebars
+    language: cpp
+    build: cmake (Hyprland plugin)
+    binary: titlebars
+    license: BSD-3-Clause AND MIT
+    deps: [hyprland, hyprlang, hyprutils]
+    status: verified
+    version: 0.2.0
+    note: Hyprland plugin drawing titlebars on Omarchy's floating windows; loaded from /usr/lib/omarchy-hyprland-titlebars/titlebars.so and registered as `hyprbars`. Compiled against nett00n/hyprland's hyprland-devel, so it must be rebuilt when Hyprland changes (upstream rebuild_on). Container-built OK.
   omarchy-emacs:
     repo: https://github.com/scottjones/omarchy-emacs
     language: emacs-lisp
@@ -167,6 +177,16 @@ packages:
     status: verified
     version: 1.0.0
     note: Proprietary Superwhisper dictation; verifies the vendor Minisign signature then installs under /opt/superwhisper (launcher, user service, desktop entries, fcitx5 addon, fonts/icons). Upstream lists it in omarchy-base.packages, so it is in the default first-party set. Container-built OK.
+  signed:
+    repo: https://github.com/omacom/signed
+    language: cpp
+    build: qmake6
+    binary: signed
+    license: MIT
+    deps: [poppler-qt6, qpdf, qt6-qtbase, qt6-qtdeclarative, qt6-qtwayland, xdg-desktop-portal]
+    status: verified
+    version: 0.1.0
+    note: Omarchy PDF signing app; Qt6/qmake6, opens documents through the XDG desktop portal and exports the stamped PDF with qpdf. Upstream lists it in omarchy-base.packages, so it is in the default first-party set. Container-built OK.
   omawrite:
     repo: https://github.com/omacom/omawrite
     language: cpp

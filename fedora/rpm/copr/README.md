@@ -1,15 +1,15 @@
 # whelanh/omarchy COPR publishing
 
-This directory holds the tooling that publishes the 20 first-party Omarchy
+This directory holds the tooling that publishes the 22 first-party Omarchy
 RPMs (specs in `fedora/rpm/<pkg>/`) to the **`whelanh/omarchy`** COPR, so a
 stock Fedora install gets them with a plain `dnf install` — no local builds.
 
-## The 20 packages
+## The 22 packages
 
 aether, cliamp, disktree-bin, elsewhen, gliff, herdr, hype,
-hyprland-preview-share-picker, monologue, omacalc, omacut, omapresent, omawrite,
-omasnap, owe, owe-lockfeed, superwhisper-bin, tensaku, try (tobi-try), ttfx.
-All are `status: verified` in
+hyprland-preview-share-picker, monologue, omacalc, omacut, omapresent,
+omarchy-hyprland-titlebars, omawrite, omasnap, owe, owe-lockfeed, signed,
+superwhisper-bin, tensaku, try (tobi-try), ttfx. All are `status: verified` in
 `fedora/rpm/manifest.yaml` and built green end-to-end on `fedora:rawhide`
 via `fedora/rpm/build-rpm-in-ci.sh`.
 
@@ -95,8 +95,8 @@ already does when `--with-firstparty` is on, default):
 sudo dnf copr enable whelanh/omarchy
 sudo dnf install aether cliamp disktree-bin elsewhen gliff herdr hype \
                  hyprland-preview-share-picker monologue omacalc omacut \
-                 omapresent omawrite omasnap owe owe-lockfeed superwhisper-bin \
-                 tensaku try ttfx
+                 omapresent omarchy-hyprland-titlebars omawrite omasnap owe \
+                 owe-lockfeed signed superwhisper-bin tensaku try ttfx
 ```
 
 `fedora/scripts/lib/deps.sh` exposes
@@ -112,6 +112,10 @@ sudo dnf install aether cliamp disktree-bin elsewhen gliff herdr hype \
 - **Full refresh**: `bash fedora/rpm/copr/submit-builds.sh` after any spec,
   manifest, or mapping change. CI (`fedora-build.yml`) re-verifies the specs,
   then the COPR build is the release step.
+- **`omarchy-hyprland-titlebars`**: a Hyprland plugin compiled against a specific
+  Hyprland build (upstream marks `rebuild_on: hyprland`). It is built against
+  `hyprland-devel` from the `nett00n/hyprland` per-chroot repo, so it must be
+  rebuilt (bump `Release:` and resubmit) whenever that repo's Hyprland moves.
 
 ## Checking for upstream updates
 

@@ -1,0 +1,64 @@
+# Omarchy Quattro - omarchy-hyprland-titlebars (Hyprland titlebars plugin)
+# Upstream: https://github.com/omacom/omarchy-hyprland-titlebars (fork of
+# hyprwm/hyprland-plugins' hyprbars; BSD-3-Clause AND MIT). A native Hyprland
+# plugin loaded from the fixed path
+# /usr/lib/omarchy-hyprland-titlebars/titlebars.so; registers as `hyprbars`.
+#
+# NOTE: like upstream (rebuild_on: hyprland), this plugin is compiled against a
+# specific Hyprland build and must be rebuilt whenever Hyprland changes. The
+# COPR build pulls hyprland-devel from the nett00n/hyprland per-chroot repo.
+%global debug_package %{nil}
+%global _lto_cflags %{nil}
+
+Name:           omarchy-hyprland-titlebars
+Version:        0.2.0
+Release:        1%{?dist}
+Summary:        Titlebars for Omarchy's floating workspace mode
+
+License:        BSD-3-Clause AND MIT
+URL:            https://github.com/omacom/omarchy-hyprland-titlebars
+Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz
+
+BuildRequires:  cmake
+BuildRequires:  gcc-c++
+BuildRequires:  pkgconfig(hyprland)
+BuildRequires:  pkgconfig(libdrm)
+BuildRequires:  pkgconfig(libinput)
+BuildRequires:  pkgconfig(libudev)
+BuildRequires:  pkgconfig(pixman-1)
+BuildRequires:  pkgconfig(wayland-server)
+BuildRequires:  pkgconfig(xkbcommon)
+
+Requires:       hyprland
+Requires:       hyprlang
+Requires:       hyprutils
+
+ExclusiveArch:  x86_64
+
+%description
+A native Hyprland plugin that gives Omarchy's floating workspace mode its window
+titlebars. It is loaded from the fixed path
+/usr/lib/omarchy-hyprland-titlebars/titlebars.so and registers with Hyprland as
+`hyprbars`. It must match the running Hyprland version and is rebuilt when
+Hyprland changes.
+
+%prep
+%autosetup
+
+%build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%{_prefix}
+cmake --build build --verbose
+
+%install
+DESTDIR=%{buildroot} cmake --install build
+install -Dm644 LICENSE %{buildroot}%{_datadir}/licenses/%{name}/LICENSE
+install -Dm644 LICENSE.MIT %{buildroot}%{_datadir}/licenses/%{name}/LICENSE.MIT
+
+%files
+%license %{_datadir}/licenses/%{name}/LICENSE
+%license %{_datadir}/licenses/%{name}/LICENSE.MIT
+%{_prefix}/lib/omarchy-hyprland-titlebars/titlebars.so
+
+%changelog
+* Sun Oct 11 2026 whelanh <brickhousedevelopers@gmail.com> - 0.2.0-1
+- Initial Fedora package: Omarchy Hyprland titlebars plugin (v0.2.0)
