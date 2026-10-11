@@ -98,5 +98,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install build tools
         run: dnf -y install rpm-build dnf-plugins-core python3-pyyaml
+      # Some verified specs need devel packages official Fedora doesn't ship:
+      # omarchy-hyprland-titlebars builds against hyprland-devel from this COPR
+      # (the same per-chroot build repo the whelanh/omarchy COPR project sets).
+      - name: Enable build-time repos (nett00n/hyprland)
+        run: dnf -y copr enable nett00n/hyprland
       - name: Build each verified first-party RPM
         run: bash fedora/rpm/build-rpm-in-ci.sh
