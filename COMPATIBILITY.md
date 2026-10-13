@@ -29,7 +29,7 @@ mapped.
 |---|---|
 | fedora (official) | ~120 |
 | substitute | ~30 |
-| copr | ~11 + 22 first-party |
+| copr | ~11 + 26 first-party |
 | external (mise) | 1 |
 | unavailable | ~19 |
 | drop (Arch-only) | ~8 |
@@ -72,16 +72,17 @@ gpgcheck=1) enabled by the installer via `dnf config-manager --add-repo`. See
 `fedora/mappings/repositories.yaml` (entry `mise`).
 
 ### First-party Omarchy binaries (FIRST_PARTY, COPR `whelanh/omarchy`)
-22 Omarchy packages (`aether`, `cliamp`, `disktree-bin`, `elsewhen`, `gliff`,
+26 Omarchy packages (`aether`, `cliamp`, `disktree-bin`, `elsewhen`, `gliff`,
 `herdr`, `hype`, `hyprland-preview-share-picker`, `monologue`, `omacalc`,
-`omacut`, `omapresent`, `omarchy-hyprland-titlebars`, `omawrite`, `omasnap`,
-`owe`, `owe-lockfeed`, `signed`, `superwhisper-bin`, `tensaku`,
-`tobi-try → try`, `ttfx`) are
+`omacut`, `omapresent`, `omarchy-emacs`, `omarchy-hyprland-titlebars`,
+`omawrite`, `omasnap`, `openai-codex-bin`, `openai-codex-desktop`, `owe`,
+`owe-lockfeed`, `signed`, `superwhisper-bin`, `tensaku`, `tobi-try → try`,
+`ttfx`, `voxtype-bin`) are
 source-built or repacked as Fedora RPMs. Specs live in `fedora/rpm/` (one SPEC
 per package) with a `manifest.yaml` (repo, build system, license, status) and
 publish tooling in `fedora/rpm/copr/`.
 
-**Status — 22 verified, 0 blocked.** Every package builds cleanly in a Fedora
+**Status — 26 verified, 0 blocked.** Every package builds cleanly in a Fedora
 Rawhide container and is published from the `whelanh/omarchy` COPR. The
 default installer enables that COPR and installs the set (disable with
 `install.sh --no-firstparty`).
@@ -125,7 +126,7 @@ session — no package manager. The installer wires them onto PATH by symlinking
 Caveats:
 - `omarchy plugin enable/disable` talk to the running shell via
   `omarchy-shell shell enablePlugin`, so Quickshell must be running.
-- The 22 first-party binary packages are built and published from the
+- The 26 first-party binary packages are built and published from the
   `whelanh/omarchy` COPR and installed by the default installer
   (`--no-firstparty` to skip); all are `verified` in `fedora/rpm/manifest.yaml`.
 - `gum` and `git-delta` were added to `fedora/packages/base.txt` as
@@ -150,7 +151,7 @@ Caveats:
 
 ## Known incompatibilities / open work
 
-1. **First-party RPM packaging (done)** — 22 Omarchy binaries built + published
+1. **First-party RPM packaging (done)** — 26 Omarchy binaries built + published
    from the `whelanh/omarchy` COPR (`fedora/rpm/`, see `fedora/rpm/copr/`).
    Installed by the default installer. CI re-verifies the specs on push.
 2. **libalpm hooks / "update guard"** — Arch's pacman PreTransaction guard that

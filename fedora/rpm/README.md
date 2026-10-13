@@ -6,7 +6,7 @@ in Fedora official/COPR repos. They map to `source: copr` entries in
 `fedora/mappings/packages.yaml` and are distributed via the
 `whelanh/omarchy` COPR.
 
-> **Status: 22 VERIFIED, 0 BLOCKED.** Every package builds cleanly in the
+> **Status: 26 VERIFIED, 0 BLOCKED.** Every package builds cleanly in the
 > Fedora Rawhide container (`manifest.yaml` status `verified`), driven by
 > `build-rpm-in-ci.sh` — the same path the CI `rpm-build` job runs.
 
@@ -53,8 +53,11 @@ FEDORA=1 bash fedora/rpm/build-in-container.sh tensaku
 | omacut | omacom/omacut | Qt6 / qmake6 | MIT | verified |
 | omawrite | omacom/omawrite | Qt6 / qmake6 | MIT | verified |
 | omapresent | jethrojones/omapresent | Qt6 / qmake6 + QtWebEngine | MIT AND LicenseRef-Omarchy | verified |
+| omarchy-emacs | scottjones/omarchy-emacs | noarch-repack | MIT | verified |
 | omarchy-hyprland-titlebars | omacom/omarchy-hyprland-titlebars | cmake (Hyprland plugin) | BSD-3-Clause AND MIT | verified |
 | omasnap | tobi/omasnap | prebuilt-repack | MIT | verified |
+| openai-codex-bin | openai/codex | musl release repack | Apache-2.0 | verified |
+| openai-codex-desktop | chatgpt.com/codex | Debian .deb repack | LicenseRef-proprietary | verified |
 | signed | omacom/signed | Qt6 / qmake6 | MIT | verified |
 | owe | omacom/owe | meson (C) | MIT | verified |
 | owe-lockfeed | omacom/owe | cmake (Qt6 qml-plugin) | MIT | verified |
@@ -62,6 +65,7 @@ FEDORA=1 bash fedora/rpm/build-in-container.sh tensaku
 | tensaku | jondkinney/tensaku | prebuilt-tarball repack | MPL-2.0 | verified |
 | tobi-try | tobi/try | Ruby gem | MIT | verified |
 | ttfx | omacom/ttfx | cargo | MIT | verified |
+| voxtype-bin | peteonrails/voxtype | prebuilt-repack (Whisper + OSD) | MIT | verified |
 
 ### Dropped from RPM scope (were in the original 13)
 

@@ -151,8 +151,9 @@ Categories:
 - **FIRST_PARTY (COPR `whelanh/omarchy`)**: Omarchy's own binaries/plugins,
   rebuilt or repacked as RPMs from `fedora/rpm/` — aether, cliamp, disktree-bin,
   elsewhen, gliff, herdr, hype, hyprland-preview-share-picker, monologue,
-  omacalc, omacut, omapresent, omarchy-hyprland-titlebars, omawrite, omasnap,
-  owe, owe-lockfeed, signed, superwhisper-bin, tensaku, tobi-try, ttfx.
+  omacalc, omacut, omapresent, omarchy-emacs, omarchy-hyprland-titlebars,
+  omawrite, omasnap, openai-codex-bin, openai-codex-desktop, owe, owe-lockfeed,
+  signed, superwhisper-bin, tensaku, tobi-try, ttfx, voxtype-bin.
   `asdcontrol`,
   `usage` and `omarchy-nvim` are intentionally out of RPM scope (rationale in
   `fedora/rpm/README.md`).

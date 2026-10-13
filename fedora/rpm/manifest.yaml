@@ -207,6 +207,26 @@ packages:
     status: verified
     version: 1.21.0
     note: Repack of omasnap-1.21.0-archlinux-x86_64.tar.gz (mirrors AUR omasnap-bin); screenshot/annotation editor that supersedes tensaku. Container-built OK.
+  openai-codex-bin:
+    repo: https://github.com/openai/codex
+    language: rust
+    build: repack-release (upstream musl CLI + code-mode host)
+    binary: codex
+    license: Apache-2.0
+    deps: [git, ripgrep]
+    status: verified
+    version: 0.162.1
+    note: OpenAI Codex CLI (musl release) with shell completions; Provides openai-codex. Not in omarchy-base.packages, so install-on-demand. Container-built OK.
+  openai-codex-desktop:
+    repo: https://chatgpt.com/codex/
+    language: binary
+    build: repack-deb (OpenAI's official ChatGPT desktop .deb)
+    binary: chatgpt
+    license: LicenseRef-proprietary
+    deps: [gtk3, mesa-libEGL, mesa-libgbm, nss, xdg-utils]
+    status: verified
+    version: 26.1007.21434
+    note: Official ChatGPT desktop app (Electron) repacked from OpenAI's Debian release; replaces the Debian entry with Omarchy's flags-aware launcher and Provides chatgpt/codex-desktop. Installed on demand from SUPER+SPACE Install > AI > ChatGPT Desktop. Not in omarchy-base.packages. Container-built OK.
   owe:
     repo: https://github.com/omacom/owe
     language: c

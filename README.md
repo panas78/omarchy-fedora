@@ -70,8 +70,9 @@ The installer is **idempotent** — running it again is safe.
 
 > Note: Omarchy's first-party binaries and plugins (aether, cliamp, disktree-bin,
 > elsewhen, gliff, herdr, hype, hyprland-preview-share-picker, monologue,
-> omacalc, omacut, omapresent, omarchy-hyprland-titlebars, omawrite, omasnap,
-> owe, owe-lockfeed, signed, superwhisper-bin, tensaku, try, ttfx)
+> omacalc, omacut, omapresent, omarchy-emacs, omarchy-hyprland-titlebars,
+> omawrite, omasnap, openai-codex-bin, openai-codex-desktop, owe, owe-lockfeed,
+> signed, superwhisper-bin, tensaku, try, ttfx, voxtype-bin)
 > are built as Fedora
 > RPMs and installed from the `whelanh/omarchy` COPR by the installer (see
 > `fedora/rpm/copr/README.md`). Pass `--no-firstparty` to skip.
