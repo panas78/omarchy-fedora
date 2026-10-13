@@ -9,6 +9,11 @@
 # RPM dependency namespace; system libraries stay explicitly required below.
 %global __provides_exclude ^lib(EGL|GLESv2|ffmpeg|vk_swiftshader|vulkan|qt.*_shim|vips.*|log|c.._shared)\.so
 %global __requires_exclude ^((lib(EGL|GLESv2|ffmpeg|vk_swiftshader|vulkan|qt.*_shim|vips.*|log|c.._shared)\.so|libc\.musl.*|libc\.so($|[^.])|libdl\.so($|[^.])|libm\.so($|[^.])|libpthread\.so($|[^.])|libgcc_s\.so($|[^.]))|/usr/bin/(node|pwsh)$)
+# The bundled Electron/Qt tree carries libraries built on other toolchains whose
+# versioned symbols (GCC_3.5, GLIBC_2.17, CXXABI_ARM_1.3.3, ...) no Fedora
+# package provides, which yields unsatisfiable auto-Requires. Skip auto-Requires
+# from the bundled tree; the system libraries the app needs are required below.
+%global __requires_exclude_from ^/usr/lib/chatgpt/.*$
 
 Name:           openai-codex-desktop
 Version:        26.1007.21434
