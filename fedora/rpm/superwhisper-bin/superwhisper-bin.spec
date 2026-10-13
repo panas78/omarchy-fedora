@@ -10,7 +10,7 @@
 %global __brp_check_rpaths %{nil}
 
 Name:           superwhisper-bin
-Version:        1.0.0
+Version:        1.0.2
 Release:        1%{?dist}
 Summary:        Local and cloud voice dictation with Superwhisper
 
@@ -134,5 +134,8 @@ sed 's|@LIBRARY@|/opt/superwhisper/lib/fcitx5/libsuperwhisper-fcitx5|' \
 /opt/superwhisper
 
 %changelog
+* Tue Oct 13 2026 whelanh <brickhousedevelopers@gmail.com> - 1.0.2-1
+- Automatic update to upstream v1.0.2
+
 * Fri Oct 09 2026 whelanh <brickhousedevelopers@gmail.com> - 1.0.0-1
 - Initial Fedora package: repack of the vendor Superwhisper Linux archive (v1.0.0)

@@ -145,7 +145,7 @@ packages:
     license: BSD-3-Clause AND MIT
     deps: [hyprland, hyprlang, hyprutils]
     status: verified
-    version: 0.2.0
+    version: 0.2.2
     note: Hyprland plugin drawing titlebars on Omarchy's floating windows; loaded from /usr/lib/omarchy-hyprland-titlebars/titlebars.so and registered as `hyprbars`. Compiled against nett00n/hyprland's hyprland-devel, so it must be rebuilt when Hyprland changes (upstream rebuild_on). Container-built OK.
   omarchy-emacs:
     repo: https://github.com/scottjones/omarchy-emacs
@@ -175,7 +175,7 @@ packages:
     license: LicenseRef-proprietary AND MIT
     deps: [gtk4, gtk4-layer-shell, python3-gobject, pipewire-pulseaudio, foot]
     status: verified
-    version: 1.0.0
+    version: 1.0.2
     note: Proprietary Superwhisper dictation; verifies the vendor Minisign signature then installs under /opt/superwhisper (launcher, user service, desktop entries, fcitx5 addon, fonts/icons). Upstream lists it in omarchy-base.packages, so it is in the default first-party set. Container-built OK.
   signed:
     repo: https://github.com/omacom/signed

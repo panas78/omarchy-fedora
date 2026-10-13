@@ -11,7 +11,7 @@
 %global _lto_cflags %{nil}
 
 Name:           omarchy-hyprland-titlebars
-Version:        0.2.0
+Version:        0.2.2
 Release:        1%{?dist}
 Summary:        Titlebars for Omarchy's floating workspace mode
 
@@ -60,5 +60,8 @@ install -Dm644 LICENSE.MIT %{buildroot}%{_datadir}/licenses/%{name}/LICENSE.MIT
 %{_prefix}/lib/omarchy-hyprland-titlebars/titlebars.so
 
 %changelog
+* Tue Oct 13 2026 whelanh <brickhousedevelopers@gmail.com> - 0.2.2-1
+- Automatic update to upstream v0.2.2
+
 * Sun Oct 11 2026 whelanh <brickhousedevelopers@gmail.com> - 0.2.0-1
 - Initial Fedora package: Omarchy Hyprland titlebars plugin (v0.2.0)
