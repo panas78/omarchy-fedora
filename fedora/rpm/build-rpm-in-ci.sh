@@ -58,7 +58,13 @@ for m in re.finditer(r'^Source\d*:\s*(\S+)',spec,re.M):
 PY
   )
 
-  dnf -y builddep "$topdir/SPECS/$pkg.spec" >/dev/null 2>&1 || true
+  # Resolve BuildRequires. Do NOT swallow the output: when a dep can't be
+  # resolved (e.g. a COPR or Fedora repo is momentarily incomplete), dnf's
+  # reason is the useful part, and hiding it left only rpmbuild's cryptic
+  # "Failed build dependencies" list behind.
+  if ! dnf -y builddep "$topdir/SPECS/$pkg.spec"; then
+    echo "omarchy: dnf builddep reported unresolved BuildRequires for $pkg" >&2
+  fi
   # Rust packages build offline from a vendored crates.io tarball; generate it
   # here (network + cargo are available in this container after builddep).
   . "$RPM_DIR/vendor-rust.sh"

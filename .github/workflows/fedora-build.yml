@@ -85,15 +85,45 @@ jobs:
           print(f"OK: {len(pkgs)} manifest entries / {len(specs)} specs validated")
           PY
 
+  list-rpms:
+    # Collect the verified first-party specs so rpm-build can fan out one job
+    # per package (matrix). Each package then builds in its OWN fresh container,
+    # so BuildRequires installed for one package can never affect another.
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.list.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PyYAML
+        run: pip install pyyaml
+      - id: list
+        name: List verified first-party RPMs
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, yaml
+          d = yaml.safe_load(open('fedora/rpm/manifest.yaml'))['packages']
+          pkgs = sorted(p for p, v in d.items() if v.get('status') == 'verified')
+          print('packages=' + json.dumps(pkgs))
+          PY
+
   rpm-build:
-    # Builds the 'verified' first-party RPMs inside a Fedora Rawhide container
-    # to confirm each SPEC actually produces a package. Runs on push to main,
-    # on the weekly schedule, and on manual workflow_dispatch (not per-PR,
-    # since it downloads build deps from the network and takes minutes).
+    # Builds each 'verified' first-party RPM in its own Fedora Rawhide container
+    # to confirm it actually produces a package. Runs on push to main, on the
+    # weekly schedule, and on manual workflow_dispatch (not per-PR, since it
+    # downloads build deps from the network and takes minutes).
+    needs: list-rpms
+    if: github.event_name != 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.list-rpms.outputs.packages) }}
     runs-on: ubuntu-latest
     container:
       image: fedora:rawhide
-    if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
       - name: Install build tools
@@ -103,5 +133,5 @@ jobs:
       # (the same per-chroot build repo the whelanh/omarchy COPR project sets).
       - name: Enable build-time repos (nett00n/hyprland)
         run: dnf -y copr enable nett00n/hyprland
-      - name: Build each verified first-party RPM
-        run: bash fedora/rpm/build-rpm-in-ci.sh
+      - name: Build ${{ matrix.package }}
+        run: bash fedora/rpm/build-rpm-in-ci.sh ${{ matrix.package }}
