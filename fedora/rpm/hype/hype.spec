@@ -6,7 +6,7 @@
 %global debug_package %{nil}
 
 Name:           hype
-Version:        0.4.3
+Version:        0.5.0
 Release:        1%{?dist}
 Summary:        Simple Markdown presentations with a visual slide editor
 
@@ -59,5 +59,8 @@ install -Dm644 README.md %{buildroot}%{_datadir}/doc/%{name}/README.md
 %{_datadir}/doc/%{name}/README.md
 
 %changelog
+* Wed Oct 14 2026 whelanh <brickhousedevelopers@gmail.com> - 0.5.0-1
+- Automatic update to upstream v0.5.0
+
 * Mon Sep 28 2026 whelanh <brickhousedevelopers@gmail.com> - 0.4.3-1
 - Initial Fedora package: Markdown presentation editor (v0.4.3)

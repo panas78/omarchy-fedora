@@ -1,20 +1,17 @@
 # Omarchy Quattro - omacalc (calculator)
 # Upstream: https://github.com/omacom/omacalc (Qt6/qmake6)
-# Verified against upstream bin/build + source tree (v0.2.2). No desktop/icon
-# is shipped upstream; this is the bare Qt6 binary + license.
+# Verified against upstream bin/build + source tree (v0.3.1). Upstream ships the
+# desktop entry and icon in-tree under pkgbuild/.
 %global debug_package %{nil}
 
 Name:           omacalc
-Version:        0.2.2
+Version:        0.3.1
 Release:        1%{?dist}
 Summary:        A fast, native calculator built with Qt 6 for the Omarchy desktop
 
 License:        MIT
 URL:            https://github.com/omacom/omacalc
 Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz
-# Desktop entry + icon are AUR-side files maintained in omacom/omarchy-pkgs.
-Source1:        https://raw.githubusercontent.com/omacom/omarchy-pkgs/master/pkgbuilds/omacalc/omacalc.desktop
-Source2:        https://raw.githubusercontent.com/omacom/omarchy-pkgs/master/pkgbuilds/omacalc/omacalc.svg
 
 BuildRequires:  gcc-c++
 BuildRequires:  make
@@ -39,8 +36,8 @@ desktop.
 install -Dm755 build/omacalc %{buildroot}%{_bindir}/omacalc
 install -Dm644 LICENSE %{buildroot}%{_datadir}/licenses/%{name}/LICENSE
 install -Dm644 fonts/OFL.txt %{buildroot}%{_datadir}/licenses/%{name}/OFL.txt
-install -Dm644 %{SOURCE2} %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/omacalc.svg
-install -Dm644 %{SOURCE1} %{buildroot}%{_datadir}/applications/omacalc.desktop
+install -Dm644 pkgbuild/omacalc.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/omacalc.svg
+install -Dm644 pkgbuild/omacalc.desktop %{buildroot}%{_datadir}/applications/omacalc.desktop
 
 %files
 %license LICENSE
@@ -50,5 +47,8 @@ install -Dm644 %{SOURCE1} %{buildroot}%{_datadir}/applications/omacalc.desktop
 %{_datadir}/applications/omacalc.desktop
 
 %changelog
+* Wed Oct 14 2026 whelanh <brickhousedevelopers@gmail.com> - 0.3.1-1
+- Automatic update to upstream v0.3.1
+
 * Mon Aug 31 2026 whelanh <brickhousedevelopers@gmail.com> - 0.2.2-1
 - Verified build in Fedora Rawhide container (v0.2.2)

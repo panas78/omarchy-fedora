@@ -75,7 +75,7 @@ packages:
     license: Apache-2.0
     deps: [gcc-libs, glibc]
     status: verified
-    version: 0.9.3
+    version: 0.9.4
     note: Repack of herdr-linux-x86_64 from herdrdev/herdr (the omacom-io/herdr fork has no release assets); Obsoletes/Provides omarchy-herdr.
   hype:
     repo: https://github.com/omacom/hype
@@ -85,7 +85,7 @@ packages:
     license: MIT
     deps: [qt6-qtbase, qt6-qtdeclarative, qt6-qtmultimedia, qt6-qtimageformats, qt6-qtsvg, libwebp, source-highlight, ffmpeg-free, xdg-desktop-portal]
     status: verified
-    version: 0.4.3
+    version: 0.5.0
     note: Markdown presentation editor with a visual slide editor; Qt6/qmake6, shells out to source-highlight (code blocks) and ffmpeg (video/animated media export), links zlib + libwebp. Container-built OK.
   hyprland-preview-share-picker:
     repo: https://github.com/WhySoBad/hyprland-preview-share-picker
@@ -115,7 +115,7 @@ packages:
     license: MIT
     deps: [qt6-base, qt6-declarative, xdg-desktop-portal]
     status: verified
-    version: 0.2.2
+    version: 0.3.1
     note: Built in Fedora Rawhide container; Qt6 qmake6 via ./bin/build; desktop entry + svg icon + OFL added.
   omacut:
     repo: https://github.com/omacom/omacut
@@ -125,7 +125,7 @@ packages:
     license: MIT
     deps: [qt6-base, qt6-declarative, qt6-multimedia, ffmpeg, ffprobe]
     status: verified
-    version: 0.5.0
+    version: 0.7.0
     note: Built in Fedora Rawhide container (v0.5.0); Qt6 trimmer, needs qt6-qtmultimedia-devel.
   omapresent:
     repo: https://github.com/jethrojones/omapresent
@@ -185,7 +185,7 @@ packages:
     license: MIT
     deps: [poppler-qt6, qpdf, qt6-qtbase, qt6-qtdeclarative, qt6-qtwayland, xdg-desktop-portal]
     status: verified
-    version: 0.1.0
+    version: 0.2.0
     note: Omarchy PDF signing app; Qt6/qmake6, opens documents through the XDG desktop portal and exports the stamped PDF with qpdf. Upstream lists it in omarchy-base.packages, so it is in the default first-party set. Container-built OK.
   omawrite:
     repo: https://github.com/omacom/omawrite

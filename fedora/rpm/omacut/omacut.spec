@@ -4,7 +4,7 @@
 %global debug_package %{nil}
 
 Name:           omacut
-Version:        0.5.0
+Version:        0.7.0
 Release:        1%{?dist}
 Summary:        Dead-simple video length trimmer built with Qt Quick and ffmpeg
 
@@ -46,6 +46,9 @@ install -Dm644 pkgbuild/omacut.desktop %{buildroot}%{_datadir}/applications/omac
 %{_datadir}/applications/omacut.desktop
 
 %changelog
+* Wed Oct 14 2026 whelanh <brickhousedevelopers@gmail.com> - 0.7.0-1
+- Automatic update to upstream v0.7.0
+
 * Sat Oct 3 2026 whelanh <brickhousedevelopers@gmail.com> - 0.5.0-1
 - Automatic update to upstream v0.5.0
 

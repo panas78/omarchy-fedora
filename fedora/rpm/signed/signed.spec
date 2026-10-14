@@ -5,7 +5,7 @@
 %global debug_package %{nil}
 
 Name:           signed
-Version:        0.1.0
+Version:        0.2.0
 Release:        1%{?dist}
 Summary:        Sign PDFs and fill them in with text and dates
 
@@ -54,5 +54,8 @@ install -Dm644 README.md %{buildroot}%{_datadir}/doc/%{name}/README.md
 %{_datadir}/applications/signed.desktop
 
 %changelog
+* Wed Oct 14 2026 whelanh <brickhousedevelopers@gmail.com> - 0.2.0-1
+- Automatic update to upstream v0.2.0
+
 * Sun Oct 11 2026 whelanh <brickhousedevelopers@gmail.com> - 0.1.0-1
 - Initial Fedora package: Omarchy PDF signing app (v0.1.0)
