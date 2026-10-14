@@ -38,7 +38,7 @@ That is a concrete, automated "you need to map a new package" signal.
 (Package *removals* are quieter — a stale mapping is harmless until you clean
 it up.)
 
-### 3. `check-updates.sh` (two modes)
+### 3. `check-updates.sh` (three modes)
 
 ```sh
 # version drift for the 26 first-party COPR packages
@@ -46,7 +46,15 @@ bash fedora/rpm/copr/check-updates.sh
 
 # package add/remove drift vs our mapping
 bash fedora/rpm/copr/check-updates.sh --packages
+
+# omarchy-pkgs commit-pin drift (auxiliary files pinned in a spec)
+bash fedora/rpm/copr/check-updates.sh --pins
 ```
+
+`--pins` compares each file a spec pins to an `omacom/omarchy-pkgs` commit
+(launcher, service, desktop entries, release key, setup scripts) against current
+`omarchy-pkgs` master, so a stale pin is caught even when the app version has
+not moved.
 
 `--packages` diffs upstream's `omarchy-base.packages` + `omarchy-other.packages`
 against `fedora/mappings/packages.yaml` and prints:

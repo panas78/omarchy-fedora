@@ -12,9 +12,18 @@
 #   - unmapped  upstream packages we haven't mapped yet (need action)
 #   - stale     mappings for packages upstream no longer lists
 #
+# --pins: report specs that pin auxiliary files to a specific
+# omacom/omarchy-pkgs commit (Source URLs like
+# raw.githubusercontent.com/omacom/omarchy-pkgs/<sha>/pkgbuilds/<pkg>/<file>)
+# whose file has since changed on omarchy-pkgs master. The app version is
+# tracked separately; these helper files (launcher, service, desktop entries,
+# release keys, setup scripts) can change independently, so the pin needs
+# updating when they do.
+#
 # Usage:
 #   bash fedora/rpm/copr/check-updates.sh
 #   bash fedora/rpm/copr/check-updates.sh --packages
+#   bash fedora/rpm/copr/check-updates.sh --pins
 #
 # Exit status is 0 when everything is current, 1 when something needs attention.
 set -euo pipefail
@@ -73,6 +82,71 @@ if not unmapped and not stale:
 
 print(f"{len(unmapped)} unmapped, {len(stale)} stale")
 sys.exit(1)
+PY
+  exit
+fi
+
+if [ "${1:-}" = "--pins" ]; then
+  python3 - "$RPM_DIR" <<'PY'
+import glob, os, re, sys, urllib.request
+
+rpm_dir = sys.argv[1]
+# Source URLs that pin a file inside omacom/omarchy-pkgs at a commit SHA.
+PIN_RE = re.compile(
+    r"raw\.githubusercontent\.com/omacom/omarchy-pkgs/([0-9a-f]{7,40})/pkgbuilds/([^/]+)/([^/\s#]+)")
+
+def fetch(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "omarchy-fedora-check"})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        return r.read()
+
+entries, seen = [], set()
+for spec in sorted(glob.glob(os.path.join(rpm_dir, "*", "*.spec"))):
+    name = os.path.basename(os.path.dirname(spec))
+    for m in PIN_RE.finditer(open(spec).read()):
+        sha, pkg, fname = m.groups()
+        if (pkg, fname, sha) in seen:
+            continue
+        seen.add((pkg, fname, sha))
+        entries.append((name, pkg, fname, sha))
+
+if not entries:
+    print("No omarchy-pkgs commit pins found.")
+    sys.exit(0)
+
+print(f"{'package':22} {'file':28} {'pinned':>12}  status")
+print("-" * 80)
+stale = 0
+for name, pkg, fname, sha in entries:
+    pinned = current = None
+    try:
+        pinned = fetch(f"https://raw.githubusercontent.com/omacom/omarchy-pkgs/{sha}/pkgbuilds/{pkg}/{fname}")
+    except Exception:
+        pass
+    try:
+        current = fetch(f"https://raw.githubusercontent.com/omacom/omarchy-pkgs/master/pkgbuilds/{pkg}/{fname}")
+    except Exception:
+        pass
+    if pinned is None:
+        status = "pinned unreadable"
+    elif current is None:
+        status = "REMOVED upstream"
+        stale += 1
+    elif pinned != current:
+        status = "OUTDATED"
+        stale += 1
+    else:
+        status = "ok"
+    print(f"{name:22} {fname:28} {sha[:12]:>12}  {status}")
+
+print()
+if stale:
+    print(f"{stale} pinned file(s) differ from omarchy-pkgs master — review them,")
+    print("update the commit SHA in the spec (bump Release: + a %changelog entry),")
+    print("then resubmit: bash fedora/rpm/copr/submit-builds.sh <pkg>")
+else:
+    print("all omarchy-pkgs pins current")
+sys.exit(1 if stale else 0)
 PY
   exit
 fi

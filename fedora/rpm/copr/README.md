@@ -133,6 +133,26 @@ filtered) and reports any whose version is newer than the packaged one, e.g.
 `cliamp 1.63.2 -> v2.0.0 OUTDATED`. Exit status is 1 when something is stale.
 Uses unauthenticated GitHub API (~2 calls/package, well under rate limits).
 
+Some specs (`superwhisper-bin`, `openai-codex-desktop`) pin auxiliary files —
+launcher, service, desktop entries, release key, setup scripts — to a specific
+`omacom/omarchy-pkgs` commit. Those files can change on their own, without the
+app version moving, so the pin goes stale silently:
+
+```sh
+bash fedora/rpm/copr/check-updates.sh --pins
+```
+
+It compares each pinned file against `omarchy-pkgs` master and reports
+`OUTDATED` / `REMOVED upstream`. When one changes, review the upstream diff,
+update the commit SHA in the spec's `Source` URL, bump `Release:` + add a
+`%changelog` entry, and resubmit that package.
+
+Other checks:
+
+```sh
+bash fedora/rpm/copr/check-updates.sh --packages   # upstream <-> mapping drift
+```
+
 ### Fully automated: check → bump → submit
 
 ```sh
