@@ -1,13 +1,14 @@
 # Omarchy Quattro - hype (Markdown presentations with a visual slide editor)
 # Upstream: https://github.com/omacom/hype (C++/Qt6, qmake6)
-# Verified against upstream pkgbuild/PKGBUILD + bin/build (v0.4.3). The app
+# Verified against upstream pkgbuild/PKGBUILD + bin/build (v0.5.0). The app
 # shells out to `source-highlight` (code blocks) and `ffmpeg` (video/animated
-# media export), and links zlib + libwebp for image compression.
+# media export), and links zlib + libwebp for image compression. v0.5.0 adds
+# Qt SVG to the project.
 %global debug_package %{nil}
 
 Name:           hype
 Version:        0.5.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Simple Markdown presentations with a visual slide editor
 
 License:        MIT
@@ -19,6 +20,7 @@ BuildRequires:  make
 BuildRequires:  qt6-qtbase-devel
 BuildRequires:  qt6-qtdeclarative-devel
 BuildRequires:  qt6-qtmultimedia-devel
+BuildRequires:  qt6-qtsvg-devel
 BuildRequires:  libwebp-devel
 BuildRequires:  zlib-devel
 
@@ -59,6 +61,9 @@ install -Dm644 README.md %{buildroot}%{_datadir}/doc/%{name}/README.md
 %{_datadir}/doc/%{name}/README.md
 
 %changelog
+* Wed Oct 14 2026 whelanh <brickhousedevelopers@gmail.com> - 0.5.0-2
+- Add BuildRequires: qt6-qtsvg-devel (v0.5.0 builds with `QT += svg`)
+
 * Wed Oct 14 2026 whelanh <brickhousedevelopers@gmail.com> - 0.5.0-1
 - Automatic update to upstream v0.5.0
 
