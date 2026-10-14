@@ -46,7 +46,7 @@ packages:
     source: copr
     repository: whelanh/omarchy
     rpm: fedora/rpm/elsewhen/elsewhen.spec
-    note: World clock shell plugin; noarch QML/JS/Python, no compile. The config seed links it into ~/.config/omarchy/plugins.
+    note: RETIRED upstream (moved in-tree as omarchy.elsewhen, upstream/migrations/1790528634.sh drops the package). Kept for reference; listed in retired-packages.conf so fresh installs skip it and updates prune it. See fedora/migrations/*-elsewhen-retire.sh for the shell.json rename/dedup.
   gliff:
     package: gliff
     source: copr

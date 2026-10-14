@@ -29,7 +29,7 @@ mapped.
 |---|---|
 | fedora (official) | ~120 |
 | substitute | ~30 |
-| copr | ~11 + 26 first-party |
+| copr | ~11 + 25 first-party |
 | external (mise) | 1 |
 | unavailable | ~19 |
 | drop (Arch-only) | ~8 |
@@ -72,7 +72,7 @@ gpgcheck=1) enabled by the installer via `dnf config-manager --add-repo`. See
 `fedora/mappings/repositories.yaml` (entry `mise`).
 
 ### First-party Omarchy binaries (FIRST_PARTY, COPR `whelanh/omarchy`)
-26 Omarchy packages (`aether`, `cliamp`, `disktree-bin`, `elsewhen`, `gliff`,
+25 Omarchy packages (`aether`, `cliamp`, `disktree-bin`, `gliff`,
 `herdr`, `hype`, `hyprland-preview-share-picker`, `monologue`, `omacalc`,
 `omacut`, `omapresent`, `omarchy-emacs`, `omarchy-hyprland-titlebars`,
 `omawrite`, `omasnap`, `openai-codex-bin`, `openai-codex-desktop`, `owe`,
@@ -80,18 +80,22 @@ gpgcheck=1) enabled by the installer via `dnf config-manager --add-repo`. See
 `ttfx`, `voxtype-bin`) are
 source-built or repacked as Fedora RPMs. Specs live in `fedora/rpm/` (one SPEC
 per package) with a `manifest.yaml` (repo, build system, license, status) and
-publish tooling in `fedora/rpm/copr/`.
+publish tooling in `fedora/rpm/copr/`. `elsewhen` was previously packaged here
+but is now **retired** (`status: retired`): upstream moved it in-tree as
+`omarchy.elsewhen` and drops the separate package, so the installer no longer
+installs it and `omarchy update` prunes it. Its spec is kept only as a
+reference for the Fedora-native migration that renames/dedups existing
+installs (`fedora/migrations/*-elsewhen-retire.sh`).
 
-**Status — 26 verified, 0 blocked.** Every package builds cleanly in a Fedora
-Rawhide container and is published from the `whelanh/omarchy` COPR. The
-default installer enables that COPR and installs the set (disable with
-`install.sh --no-firstparty`).
+**Status — 25 verified, 1 retired, 0 blocked.** Every verified package builds
+cleanly in a Fedora Rawhide container and is published from the
+`whelanh/omarchy` COPR. The default installer enables that COPR and installs
+the set (disable with `install.sh --no-firstparty`).
 
 | Package | Version | Notes |
 |---------|---------|-------|
 | aether | v4.30.0 | Go/Wails, repacked release binary |
 | cliamp  | v2.2.0 | Go/CGO, repacked release binary |
-| elsewhen | v1.0.0 | noarch QML/JS/Python shell plugin |
 | herdr   | v0.9.1 | Rust, repacked release binary (herdrdev/herdr) |
 | hype    | v0.4.3 | Qt6/qmake6 Markdown presentation editor |
 | hyprland-preview-share-picker | v0.2.1 | Rust/GTK4, source-built |
@@ -126,9 +130,10 @@ session — no package manager. The installer wires them onto PATH by symlinking
 Caveats:
 - `omarchy plugin enable/disable` talk to the running shell via
   `omarchy-shell shell enablePlugin`, so Quickshell must be running.
-- The 26 first-party binary packages are built and published from the
+- The 25 first-party binary packages are built and published from the
   `whelanh/omarchy` COPR and installed by the default installer
   (`--no-firstparty` to skip); all are `verified` in `fedora/rpm/manifest.yaml`.
+  (`elsewhen` is retired and no longer installed or published.)
 - `gum` and `git-delta` were added to `fedora/packages/base.txt` as
   dependencies of the CLI layer.
 - `omarchy update` converges on upstream, not just adds: packages listed in
@@ -151,9 +156,10 @@ Caveats:
 
 ## Known incompatibilities / open work
 
-1. **First-party RPM packaging (done)** — 26 Omarchy binaries built + published
-   from the `whelanh/omarchy` COPR (`fedora/rpm/`, see `fedora/rpm/copr/`).
-   Installed by the default installer. CI re-verifies the specs on push.
+1. **First-party RPM packaging (done)** — 25 Omarchy binaries built + published
+   from the `whelanh/omarchy` COPR (`fedora/rpm/`, see `fedora/rpm/copr/`) plus
+   one retired spec kept for migrations. Installed by the default installer. CI
+   re-verifies the specs on push.
 2. **libalpm hooks / "update guard"** — Arch's pacman PreTransaction guard that
    forces updates through `omarchy update` has no dnf equivalent; dropped.
 3. **UFW vs firewalld** — upstream default firewall is UFW. Fedora defaults to
@@ -167,11 +173,19 @@ Caveats:
 6. **Session/display manager** — SDDM is available on Fedora and used; the
    installer installs the wayland-session entry, the Omarchy greeter config, and
    preselects the Omarchy session for the installing user. On a **GNOME
-   Workstation** base, GDM is installed and owns the `display-manager.service`
-   alias, so `systemctl enable sddm` fails outright and the machine keeps
-   showing GDM. The installer therefore disables GDM (and LightDM/LXDM) before
-   enabling SDDM. The user keeps their GNOME session entry, but GDM's session
-   memory is ignored; SDDM's `[Last]` record is what decides the default.
+   Workstation** base, GDM owns the `display-manager.service` alias, and on
+   Fedora 44+ **KDE** the default is Plasma Login Manager
+   (`plasmalogin.service`, forked from SDDM but fixed to Breeze with no QML
+   theme support), so a plain `systemctl enable sddm` fails outright ("already
+   exists and is a symlink to .../plasmalogin.service") and the Omarchy greeter
+   never appears. The installer therefore disables GDM/LightDM/LXDM/XDM/PLM
+   before force-enabling SDDM (`systemctl enable --force`, Fedora's documented
+   DM-switch mechanism). The user keeps their GNOME/KDE session entries, but
+   GDM's session memory is ignored; SDDM's `[Last]` record is what decides the
+   default. An opt-in `omarchy-plus` SDDM theme variant (session chooser that
+   keeps the Omarchy look) is available via `install.sh --with-session-chooser`
+   for converted machines where locking the greeter to Omarchy-only is
+   undesirable; see `fedora/sddm-omarchy-plus/README.md`.
 
 ## Requirement: no security bypass
 

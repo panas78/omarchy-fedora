@@ -37,6 +37,45 @@ integration-test for the intended golden-VM model).
 - GPU drivers: on NVIDIA use `--nvidia` to enable RPM Fusion + akmod-nvidia.
 - This is not yet validated in a VM; see QUATTRO_FEATURES.md status.
 
+## "Failed to enable unit ... display-manager.service already exists and is a symlink to .../plasmalogin.service"
+
+- Fedora 44+ **KDE** bases use Plasma Login Manager instead of SDDM, and it owns
+  the `display-manager.service` alias. A plain `systemctl enable sddm` cannot
+  replace it, so the Omarchy greeter assets are installed but never shown and the
+  machine keeps PLM (which is fixed to the Breeze theme and has no Omarchy
+  theme). The installer handles this by disabling GDM/LightDM/LXDM/PLM and
+  running `systemctl enable --force sddm.service`. If you hit it on an older
+  install, re-run the installer (or `omarchy update`). To switch back to SDDM
+  manually (Fedora's documented path):
+  ```bash
+  sudo systemctl disable plasmalogin.service
+  sudo systemctl enable --force sddm.service
+  sudo systemctl reboot
+  ```
+- Your KDE session entry is preserved, so you can still choose it from the SDDM
+  session list if you enable the session chooser (below).
+
+## "Two world clocks" / duplicate bar widget
+
+- Upstream moved the world clock in-tree as `omarchy.elsewhen` and dropped the
+  separate `elsewhen` package. Older Fedora installs had the out-of-tree
+  `omacom.elsewhen` RPM, which duplicated the widget. `omarchy update` now runs
+  a migration that renames `omacom.elsewhen` → `omarchy.elsewhen` (keeping your
+  cities/settings), deduplicates, and removes the retired RPM. If you still see
+  two, run `sudo ./fedora/scripts/update.sh` (or `omarchy update`) and reboot.
+
+## I want a session picker at the login screen
+
+- The stock Omarchy greeter logs straight into Omarchy and has no picker. On a
+  machine converted from KDE/Sway/GNOME you may want the choice back. Install the
+  opt-in theme:
+  ```bash
+  sudo ./fedora/scripts/install.sh --with-session-chooser
+  ```
+  It keeps the Omarchy look but adds a session picker and username field, and
+  leaves the stock theme untouched. Revert with `--without-session-chooser`. See
+  `fedora/sddm-omarchy-plus/README.md`.
+
 ## An empty black window (Xwayland) on the Omarchy desktop
 
 - On a **KDE Plasma** base, `xwaylandvideobridge` autostarts into the Omarchy

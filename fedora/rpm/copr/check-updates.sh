@@ -197,6 +197,10 @@ def latest_github(owner, repo):
 d = yaml.safe_load(open(sys.argv[1]))
 rows = []
 for name, p in sorted(d["packages"].items()):
+    # Retired packages are no longer built/published/submitted; don't nudge the
+    # maintainer to bump them.
+    if p.get("status") == "retired":
+        continue
     repo = p.get("repo", "")
     ver = str(p.get("version", ""))
     m = re.match(r"https://github\.com/([^/]+)/([^/]+)", repo)

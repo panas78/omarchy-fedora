@@ -76,7 +76,8 @@ jobs:
           pkgs = d['packages']
           for name, p in pkgs.items():
               assert os.path.isfile(f"{name}/{name}.spec"), f"missing spec {name}"
-              assert p['status'] in ('verified', 'blocked'), name
+              # 'retired': kept only for migrations; never built/published.
+              assert p['status'] in ('verified', 'blocked', 'retired'), name
           # Every spec directory must have a manifest entry (and vice-versa), so
           # the two can't drift the way a hard-coded package count did.
           specs = sorted(f for f in os.listdir('.') if os.path.isfile(f"{f}/{f}.spec"))

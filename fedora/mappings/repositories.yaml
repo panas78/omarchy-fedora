@@ -141,7 +141,6 @@ repositories:
     packages:
       - aether
       - cliamp
-      - elsewhen
       - herdr
       - hyprland-preview-share-picker
       - omacalc
@@ -161,8 +160,8 @@ repositories:
     trust: >
       First-party Omarchy project. Built by this repo's CI from the SPECs
       under fedora/rpm/. gpgcheck on via COPR GPG signing. All repacks are
-      byte-for-byte upstream release binaries; elsewhen is an upstream source
-      archive repacked as a noarch plugin.
+      byte-for-byte upstream release binaries. (elsewhen was an upstream source
+      archive repacked as a noarch plugin but is now retired upstream.)
     optional: true
     note: >
       Container-verified end-to-end (all first-party packages built green on

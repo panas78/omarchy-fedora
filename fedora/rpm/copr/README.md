@@ -1,18 +1,20 @@
 # whelanh/omarchy COPR publishing
 
-This directory holds the tooling that publishes the 26 first-party Omarchy
+This directory holds the tooling that publishes the 25 first-party Omarchy
 RPMs (specs in `fedora/rpm/<pkg>/`) to the **`whelanh/omarchy`** COPR, so a
 stock Fedora install gets them with a plain `dnf install` — no local builds.
 
-## The 26 packages
+## The 25 packages
 
-aether, cliamp, disktree-bin, elsewhen, gliff, herdr, hype,
+aether, cliamp, disktree-bin, gliff, herdr, hype,
 hyprland-preview-share-picker, monologue, omacalc, omacut, omapresent,
 omarchy-emacs, omarchy-hyprland-titlebars, omawrite, omasnap, openai-codex-bin,
 openai-codex-desktop, owe, owe-lockfeed, signed, superwhisper-bin, tensaku,
 try (tobi-try), ttfx, voxtype-bin. All are `status: verified` in
 `fedora/rpm/manifest.yaml` and built green end-to-end on `fedora:rawhide`
-via `fedora/rpm/build-rpm-in-ci.sh`.
+via `fedora/rpm/build-rpm-in-ci.sh`. (`elsewhen` is `status: retired`: upstream
+moved it in-tree as `omarchy.elsewhen`, so it is no longer built or published;
+its spec is kept only for the migration that cleans existing machines.)
 
 > `omapresent` is the successor to `hype`; upstream still lists `hype` in
 > `omarchy-base.packages`, so both are published for now.
@@ -94,11 +96,11 @@ Failed). A failed build shows the exact mock error via:
 ## 3. Consumers
 
 Enabling + installing on any Fedora box (what `fedora/scripts/install.sh`
-already does when `--with-firstparty` is on, default):
+already does by default; `--no-firstparty` skips it):
 
 ```sh
 sudo dnf copr enable whelanh/omarchy
-sudo dnf install aether cliamp disktree-bin elsewhen gliff herdr hype \
+sudo dnf install aether cliamp disktree-bin gliff herdr hype \
                  hyprland-preview-share-picker monologue omacalc omacut \
                  omapresent omarchy-hyprland-titlebars omawrite omasnap owe \
                  owe-lockfeed signed superwhisper-bin tensaku try ttfx

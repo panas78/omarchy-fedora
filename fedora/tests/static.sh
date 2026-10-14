@@ -188,27 +188,32 @@ assert m and str(m.group(1)) == str(man), 'drift'
 "
 done
 
-echo "== First-party shell plugins install where the shell scans =="
-# The shell scans OMARCHY_PATH/shell/plugins for first-party plugins
-# (upstream/shell/shell.qml: firstPartyPluginsDir). An RPM that installs a
-# plugin under OMARCHY_PATH/plugins instead is never discovered, which silently
-# leaves a default bar widget (e.g. elsewhen) off the bar. Guard the spec and
-# the migration that places it against the same drift.
-t "elsewhen spec installs under shell/plugins" python3 -c "
-import re
-spec = open('fedora/rpm/elsewhen/elsewhen.spec').read()
-assert re.search(r'%{_datadir}/omarchy/shell/plugins/omacom\.elsewhen', spec), \\
-    'elsewhen must install under shell/plugins'
-assert not re.search(r'%{_datadir}/omarchy/plugins/', spec), \\
-    'elsewhen must not install under OMARCHY_PATH/plugins'
+echo "== Elsewhen retired upstream (in-tree omarchy.elsewhen) =="
+# Upstream moved Elsewhen in-tree as omarchy.elsewhen and drops the separate
+# package (upstream/migrations/1790528634.sh). The Fedora elsewhen RPM installed
+# the old out-of-tree plugin and duplicated the world clock on fresh installs.
+# Guard the retirement: retired-packages.conf prunes it, packages.yaml marks it,
+# the old placing migration is gone, and the retire migration renames/dedups.
+t "elsewhen retired in retired-packages.conf" python3 -c "
+names = [l.split('#')[0].strip() for l in open('fedora/mappings/retired-packages.conf')]
+assert 'elsewhen' in names, 'elsewhen must be retired'
 "
-t "elsewhen migration probes shell/plugins" python3 -c "
+t "elsewhen marked RETIRED in packages.yaml" python3 -c "
+import yaml
+n = yaml.safe_load(open('fedora/mappings/packages.yaml'))['packages']['elsewhen'].get('note','')
+assert 'RETIRED' in n, 'elsewhen note must mark RETIRED'
+"
+t "old elsewhen placing migration removed" bash -c "! ls fedora/migrations/*-elsewhen-plugin.sh >/dev/null 2>&1"
+t "elsewhen retire migration renames and dedups" python3 -c "
 import glob
-migs = glob.glob('fedora/migrations/*-elsewhen-plugin.sh')
+migs = glob.glob('fedora/migrations/*-elsewhen-retire.sh')
 assert len(migs) == 1, migs
 mig = open(migs[0]).read()
-assert '/usr/share/omarchy/shell/plugins/omacom.elsewhen' in mig, \\
-    'elsewhen migration must probe shell/plugins'
+assert 'omacom.elsewhen' in mig and 'omarchy.elsewhen' in mig, 'must rename old id to new'
+assert 'dedup' in mig, 'must deduplicate double entries'
+assert 'rpm -q elsewhen' in mig, 'must drop the retired RPM'
+assert 'omacom-elsewhen' in mig, 'must clean the old cache dir'
+assert '.config/omarchy/plugins/omacom.elsewhen' in mig, 'must clean the dev-checkout symlink'
 "
 
 echo "== Installer SELinux + update-window hygiene =="
@@ -267,16 +272,58 @@ assert '.config/autostart/org.kde.xwaylandvideobridge.desktop' in src, 'must wri
 assert 'Hidden=true' in src, 'override must set Hidden=true'
 "
 
-echo "== Installer takes over the display manager (GNOME/GDM base) =="
-# On Fedora Workstation GDM owns display-manager.service, so `systemctl enable
+echo "== Installer takes over the display manager (GDM / PLM bases) =="
+# On Fedora Workstation GDM owns display-manager.service, and on Fedora 44+
+# KDE Plasma Login Manager (plasmalogin.service) owns it, so `systemctl enable
 # sddm` fails and the Omarchy greeter never appears. install.sh must disable the
-# other DMs first.
+# other DMs first and force-enable SDDM.
 t "install.sh disables competing DMs before enabling SDDM" python3 -c "
 src = open('fedora/scripts/install.sh').read()
 assert '_enable_display_manager()' in src, 'missing _enable_display_manager helper'
 assert 'gdm.service' in src and '_systemctl_disable' in src, 'must disable GDM'
+assert 'plasmalogin.service' in src, 'must disable Plasma Login Manager (F44+ KDE default)'
+assert 'enable --force' in src, 'DM enable must use --force to replace the alias'
 assert src.count('_enable_display_manager') >= 2, '_enable_display_manager must be defined and called'
 assert 'display-manager.service' in src, 'must account for the display-manager alias'
+"
+
+echo "== Opt-in omarchy-plus session chooser (converted machines) =="
+# Stock upstream greeter has no session/user picker; converted Fedora machines
+# lose their KDE/Sway choice. The opt-in plus theme installs alongside stock
+# (never modifies it), symlinks artwork so recolors track, and selects itself
+# with a zz- drop-in that sorts after 10-theme/99-omarchy-login. Default stays
+# pure stock; update mode re-asserts the last-installed state via marker.
+t "chooser flag parsing" python3 -c "
+src = open('fedora/scripts/install.sh').read()
+assert '--with-session-chooser' in src, 'missing opt-in flag'
+assert '--without-session-chooser' in src, 'missing revert flag'
+assert 'SESSION_CHOOSER_EXPLICIT' in src, 'must track explicit flag for update mode'
+"
+t "chooser installs alongside stock, never overwrites" python3 -c "
+src = open('fedora/scripts/install.sh').read()
+assert 'install_omarchy_sddm_chooser()' in src, 'missing chooser helper'
+assert src.count('install_omarchy_sddm_chooser') >= 2, 'chooser must be defined and called'
+assert 'themes/omarchy-plus' in src, 'must install as separate omarchy-plus theme'
+assert 'zz-omarchy-plus.conf' in src, 'must select via zz- drop-in (sorts last)'
+assert 'Current=omarchy-plus' in src, 'drop-in must set Current=omarchy-plus'
+assert 'ln -sfn' in src, 'artwork must be symlinked, not copied'
+assert '/var/lib/omarchy-fedora/session-chooser' in src, 'update mode must re-assert via marker'
+"
+t "chooser QML has session + username choice, SDDM 0.21-safe" python3 -c "
+qml = open('fedora/sddm-omarchy-plus/Main.qml').read()
+assert 'sessionPicker' in qml and 'username' in qml, 'must add a session picker + username field'
+assert 'Qt.UserRole + 4' in qml, 'session lookup must use UserRole+4 (DisplayRole is broken on SDDM 0.21)'
+assert 'sessionModel' in qml and 'model.name' in qml, 'session list must be driven by sessionModel'
+assert 'sddm.login(username.text' in qml, 'login must use the chosen user + session'
+assert 'import QtQuick.Controls' not in qml, 'must not require QtQuick.Controls (greeter may not load it)'
+assert 'import QtQuick 2.0' in qml and 'import SddmComponents 2.0' in qml, 'must keep the stock imports'
+assert 'sessionProbe' in qml, 'need the model probe so the label re-binds when SDDM populates it'
+"
+t "chooser revert path" python3 -c "
+src = open('fedora/scripts/install.sh').read()
+assert 'rm -f' in src and 'zz-omarchy-plus.conf' in src, 'must remove drop-in when disabled'
+u = open('fedora/scripts/uninstall.sh').read()
+assert 'themes/omarchy-plus' in u and 'zz-omarchy-plus.conf' in u, 'uninstall must clean the plus theme'
 "
 
 echo "== Userspace update: squashed subtree + opt-in live pull =="
@@ -291,16 +338,16 @@ assert 'git subtree --help' in src, 'must check git-subtree availability'
 assert 'OMARCHY_FEDORA_UPDATE_UPSTREAM:-0' in src, 'live pull must be opt-in'
 "
 
-echo "== elsewhen migration uses the target user's runtime dir =="
+echo "== Elsewhen retire migration covers all users as themselves =="
 # The migration runs as root (via sudo) and previously trusted XDG_RUNTIME_DIR
 # from the environment. When that was root's /run/user/0 (no session), the shell
 # ping went to the wrong socket and the migration wrongly reported no running
 # shell. It must derive the runtime dir from the target user's uid.
-t "elsewhen migration targets /run/user/\$uid" python3 -c "
-src = open('fedora/migrations/1790092003-elsewhen-plugin.sh').read()
-assert 'runtime=\"/run/user/\$uid\"' in src, 'must use the target uid runtime dir'
-assert 'XDG_RUNTIME_DIR:-' not in src, 'must not trust the inherited XDG_RUNTIME_DIR'
-assert 'DBUS_SESSION_BUS_ADDRESS' in src, 'must export the target session bus'
+t "retire migration targets all human users" python3 -c "
+src = open('fedora/migrations/1792015000-elsewhen-retire.sh').read()
+assert 'SUDO_USER' in src, 'must prefer SUDO_USER'
+assert '1000' in src, 'must cover uid>=1000 users'
+assert 'runuser -u' in src, 'must edit user files as the user'
 "
 
 echo

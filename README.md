@@ -69,13 +69,14 @@ sudo systemctl reboot
 The installer is **idempotent** — running it again is safe.
 
 > Note: Omarchy's first-party binaries and plugins (aether, cliamp, disktree-bin,
-> elsewhen, gliff, herdr, hype, hyprland-preview-share-picker, monologue,
+> gliff, herdr, hype, hyprland-preview-share-picker, monologue,
 > omacalc, omacut, omapresent, omarchy-emacs, omarchy-hyprland-titlebars,
 > omawrite, omasnap, openai-codex-bin, openai-codex-desktop, owe, owe-lockfeed,
 > signed, superwhisper-bin, tensaku, try, ttfx, voxtype-bin)
 > are built as Fedora
 > RPMs and installed from the `whelanh/omarchy` COPR by the installer (see
-> `fedora/rpm/copr/README.md`). Pass `--no-firstparty` to skip.
+> `fedora/rpm/copr/README.md`). Pass `--no-firstparty` to skip. (The `elsewhen`
+> world-clock plugin is retired: upstream moved it in-tree as `omarchy.elsewhen`.)
 
 ## Update
 This repo runs a daily workflow to keep it in line with upstream Omarchy.  Users can
@@ -85,6 +86,14 @@ let the update complete and then reboot.
 
 ## Rollback
 In an attempt to emulate Omarchy's Limine rollback structure. The install script installs `snapper`, `btrfs-assistant`, and `grub-btrfs` (from COPR).  Snapshots are created pre and post upgrade and on a time-line (with retention limits). You can boot into a snapshot.  To actually re-set to a snapshot, follow directions for `snapper`.
+
+## Login screen
+The stock Omarchy SDDM greeter logs straight into Omarchy and has no session
+picker. On a machine converted from KDE/Sway/GNOME you may want the choice back:
+`sudo ./fedora/scripts/install.sh --with-session-chooser` installs the opt-in
+**omarchy-plus** theme (same look, plus a session picker and username field),
+leaving the stock theme untouched; `--without-session-chooser` reverts. See
+[`fedora/sddm-omarchy-plus/README.md`](fedora/sddm-omarchy-plus/README.md).
 
 ## Documentation
 
@@ -98,6 +107,7 @@ In an attempt to emulate Omarchy's Limine rollback structure. The install script
 - [QUATTRO_FEATURES.md](QUATTRO_FEATURES.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [docs/ARCH_SPECIFIC_INVENTORY.md](docs/ARCH_SPECIFIC_INVENTORY.md)
+- [fedora/sddm-omarchy-plus/README.md](fedora/sddm-omarchy-plus/README.md) — opt-in login session chooser
 
 ## Contributors
 

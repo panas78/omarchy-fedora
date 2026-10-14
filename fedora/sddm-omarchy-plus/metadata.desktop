@@ -1,0 +1,7 @@
+[SddmGreeterTheme]
+Name=Omarchy Plus
+Description=Omarchy login theme with session + username choice (Fedora opt-in prototype for converted machines)
+Author=omarchy-fedora (derived from upstream Omarchy theme)
+Type=sddm-theme
+Version=1.0
+QtVersion=6

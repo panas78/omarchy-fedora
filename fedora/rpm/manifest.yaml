@@ -4,12 +4,14 @@
 # repo's Fedora Rawhide container; blocked = still needs work. Packages are
 # distributed via the whelanh/omarchy COPR (see fedora/rpm/README.md).
 #
-# elsewhen was added after the original 10: upstream now ships it as a
+# elsewhen was added after the original 10: upstream then shipped it as a
 # dependency of the shell (install/omarchy-base.packages) and a world-clock
-# bar widget. It is a noarch plugin bundle with no compile step, unlike the
-# original set. hype and monologue are later first-party Qt6 apps that upstream
-# added to install/omarchy-base.packages (Markdown presentations and a
-# theme-synced webcam recorder), so they are packaged here too.
+# bar widget. It is now RETIRED (status: retired) because upstream moved it
+# in-tree as omarchy.elsewhen and drops the separate package; the spec is kept
+# only for the migration that renames/dedups existing installs. hype and
+# monologue are later first-party Qt6 apps that upstream added to
+# install/omarchy-base.packages (Markdown presentations and a theme-synced
+# webcam recorder), so they are packaged here too.
 #
 # Dropped from the original 13-package scope:
 #   - asdcontrol: upstream archived Aug 2025, Apple Studio Display hardware only
@@ -54,9 +56,9 @@ packages:
     binary: null
     license: MIT
     deps: [quickshell, python3]
-    status: verified
+    status: retired
     version: 1.0.0
-    note: World clock shell plugin; arch=any QML/JS/Python from the v1.0.0 tag archive, installed to /usr/share/omarchy/shell/plugins/omacom.elsewhen (the shell's first-party plugin directory). No `omarchy` Requires (the port owns that tree).
+    note: RETIRED upstream (moved in-tree as omarchy.elsewhen; upstream/migrations/1790528634.sh drops the package). status=retired so no build/auto-update/submit tooling touches it and the installer no longer installs it (retired-packages.conf). Spec kept only as a reference for the migration that cleans existing machines.
   gliff:
     repo: https://github.com/omacom/gliff
     language: rust

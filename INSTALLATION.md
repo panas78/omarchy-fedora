@@ -49,6 +49,8 @@ sudo ./fedora/scripts/install.sh --dry-run   # check only, no changes
 sudo ./fedora/scripts/install.sh --no-omarchy # deps/system only
 sudo ./fedora/scripts/install.sh --user bob    # configure files for bob
 sudo ./fedora/scripts/install.sh --nvidia      # also enable RPM Fusion + NVIDIA
+sudo ./fedora/scripts/install.sh --with-session-chooser    # omarchy-plus greeter (see below)
+sudo ./fedora/scripts/install.sh --without-session-chooser # back to stock greeter
 ```
 
 ## 5. Reboot
@@ -63,5 +65,19 @@ you log in a different account), choose **Omarchy (Hyprland uwsm)** at the login
 screen; the stock Omarchy greeter theme has no session picker of its own, so the
 installer writes the selection to `/var/lib/sddm/state.conf`. Re-running the
 installer (or `omarchy update`) re-asserts it.
+
+Fedora 44+ **KDE** bases default to Plasma Login Manager (`plasmalogin.service`),
+which owns the `display-manager.service` alias; the installer disables it (and
+GDM/LightDM/LXDM) and force-enables SDDM. If you would rather keep a session
+chooser at the login screen instead of the Omarchy-only greeter, install the
+opt-in `omarchy-plus` theme:
+
+```bash
+sudo ./fedora/scripts/install.sh --with-session-chooser
+```
+
+It keeps the Omarchy look but adds a session picker and an editable username
+field, and never modifies the stock `omarchy` theme. Revert with
+`--without-session-chooser`. See `fedora/sddm-omarchy-plus/README.md`.
 
 > **Note:** Some Omarchy first-party binaries are available from COPRs. See COMPATIBILITY.md.

@@ -23,6 +23,9 @@ fi
 
 log "Removing Omarchy system files..."
 rm -rf /usr/share/omarchy || true
+rm -rf /usr/share/sddm/themes/omarchy-plus || true
+rm -f /etc/sddm.conf.d/zz-omarchy-plus.conf || true
+rm -f /var/lib/omarchy-fedora/session-chooser || true
 rm -f /etc/sysctl.d/90-omarchy-file-watchers.conf /etc/sysctl.d/99-omarchy-sysctl.conf
 rm -f /etc/dracut.conf.d/50-omarchy.conf
 rm -f /etc/udev/rules.d/99-omarchy-framework16-qmk-hid.rules

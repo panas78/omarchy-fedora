@@ -16,6 +16,8 @@
 #   sudo ./install.sh --no-omarchy   # install deps/system only (no desktop copy)
 #   sudo ./install.sh --dry-run      # check prerequisites, make no changes
 #   sudo ./install.sh --user USER    # configure user files for USER
+#   sudo ./install.sh --with-session-chooser    # opt-in omarchy-plus SDDM greeter
+#   sudo ./install.sh --without-session-chooser # revert to stock omarchy greeter
 
 set -euo pipefail
 
@@ -32,6 +34,8 @@ TARGET_USER=""
 NVIDIA=0
 INSTALL_FIRSTPARTY=1
 UPDATE_MODE=0
+SESSION_CHOOSER=0
+SESSION_CHOOSER_EXPLICIT=0
 
 for arg in "$@"; do
   case "$arg" in
@@ -41,6 +45,8 @@ for arg in "$@"; do
     --update)        UPDATE_MODE=1 ;;
     --user)          TARGET_USER="__NEXT__" ;;
     --nvidia)        NVIDIA=1 ;;
+    --with-session-chooser)    SESSION_CHOOSER=1; SESSION_CHOOSER_EXPLICIT=1 ;;
+    --without-session-chooser) SESSION_CHOOSER=0; SESSION_CHOOSER_EXPLICIT=1 ;;
     *)
       if [ "$TARGET_USER" = "__NEXT__" ]; then
         TARGET_USER="$arg"
@@ -170,12 +176,13 @@ install_repos() {
   # gpu-screen-recorder is part of the desktop; enable its COPR.
   omarchy_fedora_enable_optional_coprs brycensranch/gpu-screen-recorder-git \
     || die "failed to enable gpu-screen-recorder COPR"
-  # First-party Omarchy packages (aether, cliamp, disktree-bin, elsewhen, gliff,
+  # First-party Omarchy packages (aether, cliamp, disktree-bin, gliff,
   # herdr, hype, hyprland-preview-share-picker, monologue, omacalc, omacut,
   # omapresent, omarchy-emacs, omarchy-hyprland-titlebars, omawrite, omasnap,
   # openai-codex-bin, openai-codex-desktop, owe, owe-lockfeed, signed,
   # superwhisper-bin, tensaku, try, ttfx, voxtype-bin) live in the
-  # whelanh/omarchy COPR (see fedora/rpm/copr/README.md).
+  # whelanh/omarchy COPR (see fedora/rpm/copr/README.md). The retired elsewhen
+  # RPM is excluded via retired-packages.conf (upstream moved it in-tree).
   if [ "$INSTALL_FIRSTPARTY" = 1 ]; then
     omarchy_fedora_enable_optional_coprs whelanh/omarchy \
       || die "failed to enable whelanh/omarchy COPR"
@@ -326,8 +333,13 @@ enable_services() {
   # refuses to overwrite that alias ("File ... already exists and is a symlink
   # to /usr/lib/systemd/system/gdm.service"), so a GNOME-based machine would
   # stay on GDM and never show the Omarchy greeter (or its Omarchy session
-  # preselection). Disable the other DMs Fedora ships first, then enable SDDM so
-  # the alias lands on it.
+  # preselection). Fedora 44+ KDE defaults to Plasma Login Manager
+  # (plasmalogin.service, forked from SDDM but fixed to Breeze with no QML
+  # theme support), which owns the same alias and likewise blocks a plain
+  # `systemctl enable sddm` ("... symlink to .../plasmalogin.service").
+  # Disable the other DMs Fedora ships first, then force-enable SDDM so the
+  # alias lands on it (the --force is Fedora's own documented DM-switch
+  # mechanism: `systemctl enable --force sddm.service`).
   _enable_display_manager sddm.service
 
   _systemctl_enable --now systemd-oomd >/dev/null 2>&1 || true
@@ -344,16 +356,24 @@ _systemctl_disable() {
 }
 
 # Make $1 the active display manager, disabling the DMs Fedora ships first so
-# the display-manager.service alias points at it deterministically.
+# the display-manager.service alias points at it deterministically. The final
+# enable uses --force so an unknown or new DM owning the alias (e.g. a future
+# Fedora default beyond gdm/lightdm/lxdm/plasmalogin) still gets replaced
+# instead of failing with "already exists and is a symlink to ...".
 _enable_display_manager() {
   local target="$1" dm
-  for dm in gdm.service lightdm.service lxdm.service; do
+  for dm in gdm.service lightdm.service lxdm.service xdm.service plasmalogin.service; do
+    [ "$dm" = "$target" ] && continue
     if systemctl list-unit-files "$dm" >/dev/null 2>&1; then
       _systemctl_disable "$dm" || warn "could not disable $dm"
     fi
   done
   if systemctl list-unit-files "$target" >/dev/null 2>&1; then
-    _systemctl_enable "$target" || warn "could not enable $target"
+    if (( EUID == 0 )); then
+      systemctl enable --force "$target" || warn "could not enable $target"
+    else
+      sudo systemctl enable --force "$target" || warn "could not enable $target"
+    fi
   fi
 }
 
@@ -487,14 +507,15 @@ install_omarchy_tree() {
     sudo chown -R root:root "$dest"
   fi
   log "Omarchy tree installed to $dest"
-  log "NOTE: the 26 first-party packages (aether, cliamp, disktree-bin," \
-       "elsewhen, gliff, herdr, hype, hyprland-preview-share-picker," \
+  log "NOTE: the 25 first-party packages (aether, cliamp, disktree-bin," \
+       "gliff, herdr, hype, hyprland-preview-share-picker," \
        "monologue, omacalc, omacut, omapresent, omarchy-emacs," \
        "omarchy-hyprland-titlebars, omawrite, omasnap, openai-codex-bin," \
        "openai-codex-desktop, owe, owe-lockfeed, signed, superwhisper-bin," \
        "tensaku, try, ttfx, voxtype-bin) are packaged" \
        "under fedora/rpm and ship from the whelanh/omarchy COPR (see" \
-       "fedora/rpm/copr/README.md)."
+       "fedora/rpm/copr/README.md). The retired elsewhen RPM is no longer" \
+       "installed (upstream moved it in-tree as omarchy.elsewhen)."
 }
 
 # Install the upstream user systemd units (bt-agent, sleep-lock, crash-watch,
@@ -626,6 +647,62 @@ install_omarchy_sddm_theme() {
     sudo mkdir -p /usr/share/sddm/themes/omarchy
     sudo cp -a "$theme_src"/. /usr/share/sddm/themes/omarchy/
     sudo chown -R root:root /usr/share/sddm/themes/omarchy
+  fi
+}
+
+# Opt-in omarchy-plus greeter: stock Omarchy look + session/username choice.
+# See fedora/sddm-omarchy-plus/README.md. The stock omarchy theme is never
+# modified: this installs alongside it as themes/omarchy-plus (owned QML +
+# metadata, artwork symlinked so plymouth-set recolors track) and selects it
+# with a zz- drop-in that sorts after 10-theme.conf/99-omarchy-login.conf.
+# Without the flag (default) the drop-in is removed, reverting to pure stock.
+# A marker in /var/lib/omarchy-fedora/session-chooser makes update mode
+# re-assert the last-installed state when no explicit flag is passed.
+install_omarchy_sddm_chooser() {
+  [ "$COPY_OMARCHY" = 1 ] || return 0
+  local want="$SESSION_CHOOSER"
+  if [ "$SESSION_CHOOSER_EXPLICIT" = 0 ] && [ "$UPDATE_MODE" = 1 ]; then
+    [ -f /var/lib/omarchy-fedora/session-chooser ] && want=1 || want=0
+  fi
+  local plus_src="$OMARCHY_ROOT/fedora/sddm-omarchy-plus"
+  local plus_dir=/usr/share/sddm/themes/omarchy-plus
+  local stock_dir=/usr/share/sddm/themes/omarchy
+  local dropin=/etc/sddm.conf.d/zz-omarchy-plus.conf
+  local marker=/var/lib/omarchy-fedora/session-chooser
+  local art
+  if [ "$want" = 1 ]; then
+    [ -d "$plus_src" ] || { warn "no omarchy-plus source at $plus_src; keeping stock greeter"; return 0; }
+    [ -d "$stock_dir" ] || { warn "stock omarchy SDDM theme missing; install it first (install_omarchy_sddm_theme)"; return 0; }
+    log "== Installing omarchy-plus SDDM greeter (opt-in session chooser) =="
+    if (( EUID == 0 )); then
+      mkdir -p "$plus_dir"
+      cp -a "$plus_src/Main.qml" "$plus_src/metadata.desktop" "$plus_src/theme.conf" "$plus_dir"/
+      for art in logo.png lock.png lock-failed.png entry.png entry-failed.png bullet.png; do
+        ln -sfn "$stock_dir/$art" "$plus_dir/$art"
+      done
+      chown -R root:root "$plus_dir"
+      printf '[Theme]\nCurrent=omarchy-plus\n' > "$dropin"
+      chown root:root "$dropin"
+      mkdir -p /var/lib/omarchy-fedora
+      printf 'plus\n' > "$marker"
+    else
+      sudo mkdir -p "$plus_dir"
+      sudo cp -a "$plus_src/Main.qml" "$plus_src/metadata.desktop" "$plus_src/theme.conf" "$plus_dir"/
+      for art in logo.png lock.png lock-failed.png entry.png entry-failed.png bullet.png; do
+        sudo ln -sfn "$stock_dir/$art" "$plus_dir/$art"
+      done
+      sudo chown -R root:root "$plus_dir"
+      printf '[Theme]\nCurrent=omarchy-plus\n' | sudo tee "$dropin" >/dev/null
+      sudo chown root:root "$dropin"
+      sudo mkdir -p /var/lib/omarchy-fedora
+      printf 'plus\n' | sudo tee "$marker" >/dev/null
+    fi
+  else
+    if (( EUID == 0 )); then
+      rm -f "$dropin" "$marker"
+    else
+      sudo rm -f "$dropin" "$marker"
+    fi
   fi
 }
 
@@ -1423,6 +1500,7 @@ main() {
   install_omarchy_session
   install_omarchy_sddm_config
   install_omarchy_sddm_theme
+  install_omarchy_sddm_chooser
   configure_sddm_login
   install_omarchy_bin
   install_omarchy_lock_pam
