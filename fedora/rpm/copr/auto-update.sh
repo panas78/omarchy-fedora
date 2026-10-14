@@ -130,19 +130,26 @@ def is_prerelease(v):
     return bool(_PRERE.search(str(v)))
 
 def latest_github(owner, repo):
+    # Prefer the maintainer's "latest release". The full tag list can contain
+    # unrelated or prefixed tags (e.g. openai/codex also publishes `rusty-v8-*`),
+    # which makes picking the max by semver meaningless and can select a bogus
+    # version.
+    try:
+        data = gh_get(f"https://api.github.com/repos/{owner}/{repo}/releases/latest")
+        if isinstance(data, dict) and data.get("tag_name"):
+            return data["tag_name"]
+    except Exception:
+        pass
+    # No published release: fall back to the newest tag.
     cand = set()
-    for path in ("/releases/latest", "/tags?per_page=50"):
-        try:
-            data = gh_get(f"https://api.github.com/repos/{owner}/{repo}{path}")
-            if isinstance(data, dict):
-                if data.get("tag_name"):
-                    cand.add(data["tag_name"])
-            elif isinstance(data, list):
-                for t in data:
-                    if t.get("name"):
-                        cand.add(t["name"])
-        except Exception:
-            pass
+    try:
+        data = gh_get(f"https://api.github.com/repos/{owner}/{repo}/tags?per_page=50")
+        if isinstance(data, list):
+            for t in data:
+                if t.get("name"):
+                    cand.add(t["name"])
+    except Exception:
+        pass
     stable = [c for c in cand if not is_prerelease(c)]
     pool = stable or list(cand)
     return max(pool, key=semver) if pool else None
