@@ -26,6 +26,9 @@
 #     succeeded, so a failure never leaves a half-bumped tree.
 #   - The maintainer identity in new %changelog entries is taken from the
 #     spec's existing entry (falling back to git config / OMARCHY_RPM_MAINTAINER).
+#   - Always runs `check-updates.sh --pins` first and warns about specs whose
+#     omarchy-pkgs commit pin (launcher/service/desktop/key/setup files) is now
+#     stale. That is a manual review, so it warns but does not block the bumps.
 #
 # Requires: python3 + pyyaml, and for the submit step copr-cli + rpm-build
 # (see README.md). Exit status is 0 on success/nothing-to-do, 1 on error.
@@ -233,6 +236,17 @@ if unknown:
 
 sys.exit(0)
 PY
+
+# Surface stale omarchy-pkgs commit pins (auxiliary files pinned in a spec).
+# These need a manual review, not a version bump, so warn but do not block.
+echo
+echo "== checking omarchy-pkgs commit pins =="
+if ! bash "$COP_DIR/check-updates.sh" --pins; then
+  echo
+  echo "NOTE: pinned omarchy-pkgs files changed upstream — review the diff, update"
+  echo "      the commit SHA in the affected spec, bump Release: + a %changelog"
+  echo "      entry, and resubmit that package."
+fi
 
 if [ ! -s "$PLAN" ]; then
   echo
