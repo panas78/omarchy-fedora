@@ -54,7 +54,7 @@ docs/             reconnaissance inventory and engineering notes
 
 ```bash
 # On a fresh Fedora system:
-git clone git@github.com:whelanh/omarchy-fedora.git
+git clone https://github.com/whelanh/omarchy-fedora.git
 cd omarchy-fedora
 
 # Static validation (no system changes):
