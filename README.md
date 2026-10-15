@@ -62,7 +62,13 @@ bash fedora/tests/static.sh
 
 # Bootstrap (optional on a minimal install), then install:
 sudo ./fedora/scripts/bootstrap.sh
-sudo ./fedora/scripts/install.sh
+
+# The --with-session-chooser flag installs an alternative 
+# Omarchy SDDM theme that allows you to select a session at login.  
+# Without this option, you won't be able to log back into 
+# your original desktop environment.  
+sudo ./fedora/scripts/install.sh --with-session-chooser
+
 sudo systemctl reboot
 ```
 
