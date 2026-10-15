@@ -5,7 +5,7 @@
 %global debug_package %{nil}
 
 Name:           signed
-Version:        0.2.0
+Version:        0.3.1
 Release:        1%{?dist}
 Summary:        Sign PDFs and fill them in with text and dates
 
@@ -54,6 +54,9 @@ install -Dm644 README.md %{buildroot}%{_datadir}/doc/%{name}/README.md
 %{_datadir}/applications/signed.desktop
 
 %changelog
+* Thu Oct 15 2026 whelanh <brickhousedevelopers@gmail.com> - 0.3.1-1
+- Automatic update to upstream v0.3.1
+
 * Wed Oct 14 2026 whelanh <brickhousedevelopers@gmail.com> - 0.2.0-1
 - Automatic update to upstream v0.2.0
 

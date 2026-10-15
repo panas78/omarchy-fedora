@@ -14,7 +14,7 @@
 %global __requires_exclude ^(libvulkan\.so.*|libgtk-4\.so.*|libgtk4-layer-shell.*)$
 
 Name:           voxtype-bin
-Version:        1.1.0
+Version:        1.1.1
 Release:        1%{?dist}
 Summary:        Push-to-talk voice-to-text for Linux (Whisper; prebuilt binaries)
 
@@ -144,5 +144,8 @@ fi
 %{_datadir}/fish/vendor_completions.d/voxtype.fish
 
 %changelog
+* Thu Oct 15 2026 whelanh <brickhousedevelopers@gmail.com> - 1.1.1-1
+- Automatic update to upstream v1.1.1
+
 * Thu Oct 08 2026 whelanh <brickhousedevelopers@gmail.com> - 1.1.0-1
 - Initial Fedora package: voxtype dictation backend for Omarchy (v1.1.0)

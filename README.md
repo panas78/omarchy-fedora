@@ -85,6 +85,46 @@ The installer is **idempotent** — running it again is safe.
 > world-clock plugin is retired: upstream moved it in-tree as `omarchy.elsewhen`.
 > The Codex CLI is retired from RPM: upstream installs it via mise.)
 
+## Login screen
+
+**Default (Omarchy only).** The stock Omarchy SDDM greeter is deliberately
+minimal — a logo, a lock icon and a password box. It reads the username from
+`/var/lib/sddm/state.conf` and logs straight into Omarchy; there is no session
+picker. On a machine converted from KDE, Sway or GNOME that is a one-way door:
+once you log out there is no way back to the desktop you came from.
+
+**`--with-session-chooser`.** Pass the flag to `install.sh` (also shown in
+[Quick start](#quick-start-mvp)) to install the opt-in **omarchy-plus** theme
+instead: the same look, plus a session picker and an editable username field. It
+installs *alongside* the stock theme, leaves it untouched, and points SDDM at
+the new one with a single drop-in. Revert with `--without-session-chooser`, or by
+re-running the installer with no flag:
+
+```bash
+sudo ./fedora/scripts/install.sh --with-session-chooser   # opt in
+sudo ./fedora/scripts/install.sh                          # back to stock
+```
+
+**Already installed? (`enable-session-chooser.sh`).** Installs made *before* the
+flag existed have the stock greeter, so the choice is unreachable. Opt in once,
+by hand:
+
+```bash
+cd omarchy-fedora        # your checkout, updated (git pull, or omarchy update)
+sudo ./fedora/scripts/enable-session-chooser.sh
+```
+
+That script publishes the omarchy-plus theme, selects it, and **turns SDDM
+autologin off** — while autologin is on, the machine logs straight into Omarchy
+and the greeter never appears, so the chooser cannot be reached at boot. It is
+safe to re-run, takes effect at the next login or reboot (it never restarts
+SDDM, which would end your session), and records the choice so `omarchy update`
+keeps it. Undo with `sudo ./fedora/scripts/install.sh` and restore
+`/etc/sddm.conf.omarchy-session-chooser.bak` if your autologin was changed.
+
+See [`fedora/sddm-omarchy-plus/README.md`](fedora/sddm-omarchy-plus/README.md)
+for the full details and the theme's maintenance contract.
+
 ## Update
 This repo runs a daily workflow to keep it in line with upstream Omarchy.  Users can
 run `omarchy update` from their terminal to update (it re-runs the installer after
@@ -93,14 +133,6 @@ let the update complete and then reboot.
 
 ## Rollback
 In an attempt to emulate Omarchy's Limine rollback structure. The install script installs `snapper`, `btrfs-assistant`, and `grub-btrfs` (from COPR).  Snapshots are created pre and post upgrade and on a time-line (with retention limits). You can boot into a snapshot.  To actually re-set to a snapshot, follow directions for `snapper`.
-
-## Login screen
-The stock Omarchy SDDM greeter logs straight into Omarchy and has no session
-picker. On a machine converted from KDE/Sway/GNOME you may want the choice back:
-`sudo ./fedora/scripts/install.sh --with-session-chooser` installs the opt-in
-**omarchy-plus** theme (same look, plus a session picker and username field),
-leaving the stock theme untouched; `--without-session-chooser` reverts. See
-[`fedora/sddm-omarchy-plus/README.md`](fedora/sddm-omarchy-plus/README.md).
 
 ## Documentation
 

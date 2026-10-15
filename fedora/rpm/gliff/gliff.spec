@@ -6,7 +6,7 @@
 %global _lto_cflags %{nil}
 
 Name:           gliff
-Version:        0.3.1
+Version:        0.4.0
 Release:        1%{?dist}
 Summary:        Hyprland remote desktop over SSH (GPU H.264, 4:4:4)
 
@@ -77,6 +77,9 @@ cargo test --release --offline --locked --workspace >/dev/null 2>&1 || true
 %{_datadir}/applications/gliff.desktop
 
 %changelog
+* Thu Oct 15 2026 whelanh <brickhousedevelopers@gmail.com> - 0.4.0-1
+- Automatic update to upstream v0.4.0
+
 * Sat Oct 10 2026 whelanh <brickhousedevelopers@gmail.com> - 0.3.1-1
 - Automatic update to upstream v0.3.1
 

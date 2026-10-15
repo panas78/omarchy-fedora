@@ -6,7 +6,7 @@
 # so shipping the release assets mirrors the same end result without the
 # vendored Zig toolchain.
 Name:           herdr
-Version:        0.9.4
+Version:        0.9.5
 Release:        1%{?dist}
 Summary:        Herdr terminal workspace manager for AI coding agents
 
@@ -35,6 +35,9 @@ install -Dm644 LICENSE %{buildroot}%{_datadir}/licenses/%{name}/LICENSE
 %{_bindir}/herdr
 
 %changelog
+* Thu Oct 15 2026 whelanh <brickhousedevelopers@gmail.com> - 0.9.5-1
+- Automatic update to upstream v0.9.5
+
 * Wed Oct 14 2026 whelanh <brickhousedevelopers@gmail.com> - 0.9.4-1
 - Automatic update to upstream v0.9.4
 

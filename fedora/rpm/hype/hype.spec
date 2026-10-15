@@ -7,8 +7,8 @@
 %global debug_package %{nil}
 
 Name:           hype
-Version:        0.5.0
-Release:        2%{?dist}
+Version:        0.6.0
+Release:        1%{?dist}
 Summary:        Simple Markdown presentations with a visual slide editor
 
 License:        MIT
@@ -61,6 +61,9 @@ install -Dm644 README.md %{buildroot}%{_datadir}/doc/%{name}/README.md
 %{_datadir}/doc/%{name}/README.md
 
 %changelog
+* Thu Oct 15 2026 whelanh <brickhousedevelopers@gmail.com> - 0.6.0-1
+- Automatic update to upstream v0.6.0
+
 * Wed Oct 14 2026 whelanh <brickhousedevelopers@gmail.com> - 0.5.0-2
 - Add BuildRequires: qt6-qtsvg-devel (v0.5.0 builds with `QT += svg`)
 

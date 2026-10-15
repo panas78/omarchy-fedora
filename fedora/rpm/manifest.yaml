@@ -67,7 +67,7 @@ packages:
     license: MIT AND BSD-2-Clause
     deps: [dbus, openssh, vulkan-loader, gtk4, libadwaita, libva, libdrm, nasm]
     status: verified
-    version: 0.3.1
+    version: 0.4.0
     note: Hyprland remote desktop over SSH (GPU H.264 4:4:4); Rust workspace with gliff + gliff-server + gliff-probe. Crates vendored via fedora/rpm/vendor-rust.sh; cargo build --offline --locked. Container-built OK.
   herdr:
     repo: https://github.com/herdrdev/herdr
@@ -77,7 +77,7 @@ packages:
     license: Apache-2.0
     deps: [gcc-libs, glibc]
     status: verified
-    version: 0.9.4
+    version: 0.9.5
     note: Repack of herdr-linux-x86_64 from herdrdev/herdr (the omacom-io/herdr fork has no release assets); Obsoletes/Provides omarchy-herdr.
   hype:
     repo: https://github.com/omacom/hype
@@ -87,7 +87,7 @@ packages:
     license: MIT
     deps: [qt6-qtbase, qt6-qtdeclarative, qt6-qtmultimedia, qt6-qtimageformats, qt6-qtsvg, libwebp, source-highlight, ffmpeg-free, xdg-desktop-portal]
     status: verified
-    version: 0.5.0
+    version: 0.6.0
     note: Markdown presentation editor with a visual slide editor; Qt6/qmake6, shells out to source-highlight (code blocks) and ffmpeg (video/animated media export), links zlib + libwebp. Container-built OK.
   hyprland-preview-share-picker:
     repo: https://github.com/WhySoBad/hyprland-preview-share-picker
@@ -127,7 +127,7 @@ packages:
     license: MIT
     deps: [qt6-base, qt6-declarative, qt6-multimedia, ffmpeg, ffprobe]
     status: verified
-    version: 0.7.0
+    version: 0.7.2
     note: Built in Fedora Rawhide container (v0.5.0); Qt6 trimmer, needs qt6-qtmultimedia-devel.
   omapresent:
     repo: https://github.com/jethrojones/omapresent
@@ -167,7 +167,7 @@ packages:
     license: MIT
     deps: [alsa-lib, curl, glibc, libgcc]
     status: verified
-    version: 1.1.0
+    version: 1.1.1
     note: Dictation backend for the SUPER+SPACE Install > AI > Dictation row (RPM name voxtype-bin, Provides voxtype); repacks only the Whisper (CPU/Vulkan) + OSD binaries, not upstream's ONNX/CUDA/MIGraphX payload. Opt-in, not in the default install set. Container-built OK.
   superwhisper-bin:
     repo: https://github.com/superultrainc/superwhisper-linux-releases
@@ -187,7 +187,7 @@ packages:
     license: MIT
     deps: [poppler-qt6, qpdf, qt6-qtbase, qt6-qtdeclarative, qt6-qtwayland, xdg-desktop-portal]
     status: verified
-    version: 0.2.0
+    version: 0.3.1
     note: Omarchy PDF signing app; Qt6/qmake6, opens documents through the XDG desktop portal and exports the stamped PDF with qpdf. Upstream lists it in omarchy-base.packages, so it is in the default first-party set. Container-built OK.
   omawrite:
     repo: https://github.com/omacom/omawrite
@@ -197,7 +197,7 @@ packages:
     license: MIT
     deps: [qt6-base, qt6-declarative, qt6-quickcontrols2, xdg-desktop-portal]
     status: verified
-    version: 0.6.0
+    version: 0.7.0
     note: Built in Fedora Rawhide container (v0.5.0); Qt6 markdown editor.
   omasnap:
     repo: https://github.com/tobi/omasnap
