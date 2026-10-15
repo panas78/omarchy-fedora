@@ -168,12 +168,46 @@ Caveats:
    re-verifies the specs on push.
 2. **libalpm hooks / "update guard"** — Arch's pacman PreTransaction guard that
    forces updates through `omarchy update` has no dnf equivalent; dropped.
-3. **UFW vs firewalld** — upstream default firewall is UFW. Fedora defaults to
-   firewalld; the MVP does not yet configure the firewall (both are available;
-   a decision is pending).
-4. **PAM/authselect** — upstream edits `/etc/pam.d/system-auth` and
-   `/etc/pam.d/sddm`; on Fedora this must go through `authselect`, not direct
-   file edits. Addressed in Phase 6 (not yet in installer).
+3. **Firewall: firewalld, not UFW (not a live problem)** — upstream configures
+   UFW (`upstream/install/config/firewall.sh`), but Fedora ships **firewalld
+   active and enabled by default**, which already gives the same "deny incoming /
+   allow outgoing" posture — so a fresh omarchy-fedora machine is firewalled with
+   no action, which is why no firewall problem is observed. The Fedora layer does
+   **not** run upstream's `firewall.sh`, and there is no firewall logic anywhere
+   in `fedora/scripts/`. `ufw` is listed in `fedora/packages/base.txt` but is left
+   unconfigured (`systemctl` reports it inactive/disabled), i.e. inert — and it
+   must stay that way: enabling both firewalld and ufw is the foot-gun (note
+   `/etc/ufw/ufw.conf` already reads `ENABLED=yes`, so guard against anything
+   enabling the unit). Decision: standardize on `firewalld` (cf. the `ufw-docker`
+   mapping note: "prefer firewalld + docker integration"). **Not yet done:**
+   translating upstream's UFW *allowances* into firewalld services/ports —
+   LocalSend `53317/udp` + `53317/tcp` and Docker's host-DNS allow — so those
+   optional features stay blocked by the default zone until wired. Consider
+   dropping the redundant `ufw` from base.
+4. **PAM/authselect (not a live issue)** — the earlier "Phase 6" note described
+   the wrong thing. Upstream has exactly one script that touches an
+   authselect-owned file: `upstream/install/config/increase-lockout-limit.sh`
+   `sed`s `/etc/pam.d/system-auth`, which on Fedora is a symlink into
+   `/etc/authselect/` and would be reverted by `authselect apply-changes`. The
+   Fedora installer **never runs it** — nor any other `install/config/*` or
+   `install/login/*` script — so nothing authselect owns is edited. The PAM
+   services that matter are instead wired the Fedora-native way: the lock
+   screen's `/etc/pam.d/omarchy-lock-password` is created by
+   `omarchy-apply-lock` (via `install_omarchy_lock_pam`) and carries
+   `pam_faillock.so … deny=10 unlock_time=120`; fingerprint auth uses the
+   authselect `with-fingerprint` feature (`/etc/authselect/system-auth` →
+   `pam_fprintd.so`) plus our `install_omarchy_fingerprint_shim` (`fprintd-pam`),
+   not a hand edit. Two residual gaps, both hardening/cosmetic: (a) system-wide
+   lockout parity is not applied — there is no `pam_faillock` in the authselect
+   `system-auth`/`password-auth` stacks, so `sudo`/`login`/`ssh` use the profile
+   default; add it via an authselect **custom profile** (as omadora does), never a
+   `sed`. (b) upstream's fingerprint/FIDO2 setup hand-writes `/etc/pam.d/polkit-1`,
+   which on Fedora is normally absent (`/usr/lib/pam.d/polkit-1` is the vendor
+   stack) and a hand-rolled one drops `pam_faillock` — the bug upstream's
+   migration `1788256455` repaired. Our shim rewrites only the `pacman` usage, not
+   those PAM writes, so enrolling fingerprint/FIDO2 could reproduce it; the shim
+   should point that file at `include system-auth`. Guardrail: never run
+   `increase-lockout-limit.sh` directly.
 5. **snapper boot-menu sync** — upstream uses `limine-snapper-sync`; on Fedora
    this needs a GRUB snapper plugin. Not yet wired.
 6. **Session/display manager** — SDDM is available on Fedora and used; the
