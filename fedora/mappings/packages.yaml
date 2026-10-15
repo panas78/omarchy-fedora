@@ -209,6 +209,7 @@ packages:
   fcitx5-hangul:         { package: fcitx5-hangul, source: fedora }
   fcitx5-mozc:           { package: fcitx5-mozc, source: fedora }
   fcitx5-qt:             { package: fcitx5-qt, source: fedora }
+  fcitx5-table-extra:    { package: fcitx5-table-extra, source: fedora }
   fd:
     package: fd-find
     source: substitute

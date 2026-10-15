@@ -23,7 +23,7 @@ human-readable summary. Classifications:
 for each classification. Static tests verify every upstream base package is
 mapped.
 
-## Summary counts (from packages.yaml, 233 entries)
+## Summary counts (from packages.yaml, 234 entries)
 
 | Classification | ~Count |
 |---|---|
