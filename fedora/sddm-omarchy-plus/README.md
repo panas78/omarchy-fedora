@@ -60,6 +60,27 @@ sudo ./fedora/scripts/install.sh --update
 omarchy update
 ```
 
+### Migrating an install that predates the flag
+
+`install.sh --with-session-chooser` only helps when you (re)run the installer.
+An install made before the flag existed has the stock greeter, so the session
+choice is unreachable. Opt in with the one-time migration instead:
+
+```bash
+sudo ./fedora/scripts/enable-session-chooser.sh
+```
+
+It publishes this canonical theme (replacing any hand-installed copy, e.g. the
+upstream reference project's `make install`, which is not the version tested
+here), selects it with the `zz-` drop-in, sets the marker update mode reads, and
+**disables SDDM autologin** — a leftover `[Autologin]` block in `/etc/sddm.conf`
+or `/etc/sddm.conf.d/autologin.conf`. Autologin bypasses the greeter entirely,
+so the chooser can never appear at boot while it is on; the port seeds
+`/var/lib/sddm/state.conf` instead (Omarchy stays preselected). It backs up the
+old `/etc/sddm.conf` as `/etc/sddm.conf.omarchy-session-chooser.bak`. This is
+deliberately **not** a `fedora/migrations/` entry: those run automatically on
+every `omarchy update`, and opting in is a user decision.
+
 Preview without installing (needs SDDM test mode, installs nothing):
 
 ```bash
@@ -70,7 +91,8 @@ sddm-greeter --test-mode --theme /usr/share/sddm/themes/omarchy-plus
 
 - `fedora/tests/static.sh` guards: flag parsing, theme install helper +
   call, zz drop-in ordering, artwork symlinks (not copies), UserRole + 4
-  session lookup, revert path.
+  session lookup, revert path, and the opt-in `enable-session-chooser.sh`
+  migration (canonical theme + marker + autologin disable; not auto-run).
 - When upstream changes `default/sddm/omarchy/Main.qml` (logo/layout), mirror
   the visual parts here; the `upstream-sync` diff is the signal.
 - `omarchy-refresh-sddm` rewrites `themes/omarchy`, not `themes/omarchy-plus`,

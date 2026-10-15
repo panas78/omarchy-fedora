@@ -352,6 +352,30 @@ u = open('fedora/scripts/uninstall.sh').read()
 assert 'themes/omarchy-plus' in u and 'zz-omarchy-plus.conf' in u, 'uninstall must clean the plus theme'
 "
 
+echo "== Opt-in session chooser migration for existing installs =="
+# install.sh --with-session-chooser only helps fresh installs; older ones opt in
+# with fedora/scripts/enable-session-chooser.sh. It must publish the SAME
+# canonical theme (never a hand-installed copy), select it, set the marker, and
+# disable the leftover SDDM autologin -- which bypasses the greeter, so the
+# chooser would be unreachable at boot. It must NOT be a fedora/migrations/
+# entry, since those run automatically on every update and opting in is a
+# user decision.
+t "enable-session-chooser.sh syntax" bash -n fedora/scripts/enable-session-chooser.sh
+t "chooser migration: canonical theme + marker + disable autologin" python3 -c "
+src = open('fedora/scripts/enable-session-chooser.sh').read()
+assert 'fedora/sddm-omarchy-plus' in src, 'must install from the owned theme source'
+assert 'themes/omarchy-plus' in src, 'must target themes/omarchy-plus'
+assert 'zz-omarchy-plus.conf' in src, 'must select via the zz- drop-in'
+assert '/var/lib/omarchy-fedora/session-chooser' in src, 'must set the marker update mode reads'
+assert 'autologin.conf' in src and '/etc/sddm.conf' in src, 'must disable leftover autologin'
+assert 'ln -sfn' in src, 'artwork must be symlinked, not copied'
+"
+t "chooser migration is opt-in (not an automatic migration)" bash -c "! ls fedora/migrations/*session-chooser*.sh >/dev/null 2>&1"
+t "chooser migration documented in the theme README" python3 -c "
+src = open('fedora/sddm-omarchy-plus/README.md').read()
+assert 'enable-session-chooser.sh' in src, 'README must document the migration'
+"
+
 echo "== Userspace update: squashed subtree + opt-in live pull =="
 # upstream/ is a --squash subtree, so a plain `git subtree pull` fails with
 # "refusing to merge unrelated histories"; it also needs the separate
