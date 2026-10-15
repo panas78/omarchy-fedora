@@ -84,6 +84,9 @@ resolve_target_user() {
 # Source the dnf abstraction + deps libraries.
 . "$SCRIPT_DIR/lib/pkg.sh"
 . "$SCRIPT_DIR/lib/deps.sh"
+# mise user-toolchain setup (agent CLIs), used by configure_user on fresh
+# installs. See fedora/scripts/lib/mise.sh.
+. "$SCRIPT_DIR/lib/mise.sh"
 
 # ---------------------------------------------------------------------------
 # Phase A - Prerequisite verification
@@ -179,10 +182,11 @@ install_repos() {
   # First-party Omarchy packages (aether, cliamp, disktree-bin, gliff,
   # herdr, hype, hyprland-preview-share-picker, monologue, omacalc, omacut,
   # omapresent, omarchy-emacs, omarchy-hyprland-titlebars, omawrite, omasnap,
-  # openai-codex-bin, openai-codex-desktop, owe, owe-lockfeed, signed,
+  # openai-codex-desktop, owe, owe-lockfeed, signed,
   # superwhisper-bin, tensaku, try, ttfx, voxtype-bin) live in the
   # whelanh/omarchy COPR (see fedora/rpm/copr/README.md). The retired elsewhen
-  # RPM is excluded via retired-packages.conf (upstream moved it in-tree).
+  # and openai-codex-bin RPMs are excluded via retired-packages.conf (upstream
+  # moved Elsewhen in-tree and the Codex CLI to mise).
   if [ "$INSTALL_FIRSTPARTY" = 1 ]; then
     omarchy_fedora_enable_optional_coprs whelanh/omarchy \
       || die "failed to enable whelanh/omarchy COPR"
@@ -507,15 +511,16 @@ install_omarchy_tree() {
     sudo chown -R root:root "$dest"
   fi
   log "Omarchy tree installed to $dest"
-  log "NOTE: the 25 first-party packages (aether, cliamp, disktree-bin," \
+  log "NOTE: the 24 first-party packages (aether, cliamp, disktree-bin," \
        "gliff, herdr, hype, hyprland-preview-share-picker," \
        "monologue, omacalc, omacut, omapresent, omarchy-emacs," \
-       "omarchy-hyprland-titlebars, omawrite, omasnap, openai-codex-bin," \
+       "omarchy-hyprland-titlebars, omawrite, omasnap," \
        "openai-codex-desktop, owe, owe-lockfeed, signed, superwhisper-bin," \
        "tensaku, try, ttfx, voxtype-bin) are packaged" \
        "under fedora/rpm and ship from the whelanh/omarchy COPR (see" \
-       "fedora/rpm/copr/README.md). The retired elsewhen RPM is no longer" \
-       "installed (upstream moved it in-tree as omarchy.elsewhen)."
+       "fedora/rpm/copr/README.md). The retired elsewhen and openai-codex-bin" \
+       "RPMs are no longer installed (upstream moved Elsewhen in-tree and the" \
+       "Codex CLI to mise)."
 }
 
 # Install the upstream user systemd units (bt-agent, sleep-lock, crash-watch,
@@ -1431,6 +1436,17 @@ configure_user() {
       [ -f "$m" ] || continue
       $as_user touch "$mig_dir/$(basename "$m")" 2>/dev/null || true
     done
+  fi
+
+  # Omarchy installs its coding-agent CLIs (opencode, codex, claude, ...) and a
+  # few dev tools through mise at user setup, not as system packages. Do the
+  # same here on a fresh install (fedora/scripts/lib/mise.sh runs the vendored
+  # upstream install/user/mise.sh as the user). Updates advance these tools via
+  # `mise upgrade` (update.sh); they are not re-installed on every update, so an
+  # agent the user removed stays removed. Existing installs get them from the
+  # mise-agents migration.
+  if [ "$UPDATE_MODE" = 0 ] && [ "$COPY_OMARCHY" = 1 ]; then
+    omarchy_fedora_install_mise_tools "$user" "$OMARCHY_ROOT"
   fi
 
   # Enable graphical session for the user.

@@ -209,16 +209,6 @@ packages:
     status: verified
     version: 1.21.0
     note: Repack of omasnap-1.21.0-archlinux-x86_64.tar.gz (mirrors AUR omasnap-bin); screenshot/annotation editor that supersedes tensaku. Container-built OK.
-  openai-codex-bin:
-    repo: https://github.com/openai/codex
-    language: rust
-    build: repack-release (upstream musl CLI + code-mode host)
-    binary: codex
-    license: Apache-2.0
-    deps: [git, ripgrep]
-    status: verified
-    version: 0.162.1
-    note: OpenAI Codex CLI (musl release) with shell completions; Provides openai-codex. Not in omarchy-base.packages, so install-on-demand. Container-built OK.
   openai-codex-desktop:
     repo: https://chatgpt.com/codex/
     language: binary

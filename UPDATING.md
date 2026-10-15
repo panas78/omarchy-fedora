@@ -54,12 +54,29 @@ checkout.
    removals/replacements and distro-neutral config changes. Upstream's
    Arch-specific `omarchy-migrate` is intentionally not run (see
    `fedora/migrations/README.md`).
-6. Validate — `install.sh --update` reports package + CLI wiring + version
+6. Update mise tools — `omarchy_fedora_update_mise` runs
+   `MISE_MINIMUM_RELEASE_AGE=0 mise upgrade` for the target user, mirroring
+   upstream's `omarchy-update-mise`. The cooldown override is the point: mise
+   otherwise withholds releases younger than its release age, so `omarchy
+   update` is the user asking for current versions now. Best-effort: a failed
+   tool build warns and continues. Skipped when mise is not installed.
+7. Validate — `install.sh --update` reports package + CLI wiring + version
 
 Step 3 requires the development checkout (and is opt-in). Step 4 runs for any
 install. For a purely end-user install (no git checkout), the Omarchy userspace
 is refreshed from the `quattro` tarball rather than `dnf`; see "Limitations"
 below.
+
+Agent/toolchain CLIs (opencode, codex, claude, ...) are **not** RPMs. Upstream
+installs them through mise at user setup (`install/user/mise.sh` →
+`omarchy-mise-install`), and the Fedora layer does the same on a fresh install
+(`fedora/scripts/lib/mise.sh`). Machines installed before that wiring get them
+from the one-time `fedora/migrations/*-mise-agents.sh` migration (step 5); step
+6 then keeps them current. One consequence: `openai-codex-bin` was a Fedora
+repack of the Codex CLI, but upstream moved Codex to mise and removes the old
+pacman package, so it is now retired here too (`fedora/mappings/
+retired-packages.conf` prunes it). The `openai-codex-desktop` ChatGPT GUI stays
+in the COPR.
 
 ### Limitations
 

@@ -32,6 +32,9 @@ done
 for f in fedora/scripts/lib/*.sh; do
   t "bash -n $f" bash -n "$f"
 done
+for f in fedora/migrations/*.sh; do
+  t "bash -n $f" bash -n "$f"
+done
 
 echo "== YAML mapping parses =="
 t "packages.yaml parses" python3 -c "import yaml; d=yaml.safe_load(open('fedora/mappings/packages.yaml')); assert 'packages' in d"
@@ -140,6 +143,15 @@ t "retired lookup works" bash -c "
   . fedora/scripts/lib/deps.sh
   omarchy_fedora_is_retired clang && ! omarchy_fedora_is_retired bash
 "
+t "openai-codex-bin retired (spec gone, list + manifest)" python3 -c "
+import os, yaml
+assert not os.path.isdir('fedora/rpm/openai-codex-bin'), 'spec dir must be gone'
+names = [l.split('#')[0].strip() for l in open('fedora/mappings/retired-packages.conf')]
+assert 'openai-codex-bin' in names, 'must be in retired-packages.conf'
+man = yaml.safe_load(open('fedora/rpm/manifest.yaml'))['packages']
+assert 'openai-codex-bin' not in man, 'must not be in the RPM manifest'
+assert 'openai-codex-desktop' in man, 'the ChatGPT desktop GUI must stay'
+"
 
 echo "== First-party RPM scaffold: manifest + spec + build helper =="
 t "fedora/rpm/manifest.yaml parses" python3 -c "
@@ -163,6 +175,20 @@ t "vendor-rust.sh bash -n" bash -n fedora/rpm/vendor-rust.sh
 t "copr/create-project.sh bash -n" bash -n fedora/rpm/copr/create-project.sh
 t "copr/submit-builds.sh bash -n" bash -n fedora/rpm/copr/submit-builds.sh
 t "copr/check-updates.sh bash -n" bash -n fedora/rpm/copr/check-updates.sh
+t "copr/delete-retired.sh bash -n" bash -n fedora/rpm/copr/delete-retired.sh
+# The COPR keeps retired packages until explicitly deleted; retired-packages.conf
+# drives delete-retired.sh. Guard that the packages we retired are listed.
+t "copr/retired-packages.conf lists retired COPR packages" python3 -c "
+names = [l.split('#')[0].strip() for l in open('fedora/rpm/copr/retired-packages.conf') if l.split('#')[0].strip()]
+assert 'elsewhen' in names, 'elsewhen must be listed for COPR deletion'
+assert 'openai-codex-bin' in names, 'openai-codex-bin must be listed for COPR deletion'
+"
+# auto-update.sh can prune those packages from the COPR as part of its run.
+t "auto-update.sh supports --prune-retired" python3 -c "
+s = open('fedora/rpm/copr/auto-update.sh').read()
+assert '--prune-retired' in s, 'flag missing'
+assert 'delete-retired.sh' in s, 'prune must call delete-retired.sh'
+"
 for pkg in $(python3 -c "
 import yaml; d=yaml.safe_load(open('fedora/rpm/manifest.yaml'))
 print(' '.join(sorted(d['packages'].keys())))
@@ -336,6 +362,45 @@ src = open('fedora/scripts/update.sh').read()
 assert 'git subtree pull --prefix upstream --squash upstream quattro' in src, 'live pull must use --squash'
 assert 'git subtree --help' in src, 'must check git-subtree availability'
 assert 'OMARCHY_FEDORA_UPDATE_UPSTREAM:-0' in src, 'live pull must be opt-in'
+"
+
+echo "== Update upgrades mise-managed tools (matches upstream) =="
+# Upstream's omarchy-update-mise runs on every `omarchy update`, overriding
+# mise's release-age cooldown (MISE_MINIMUM_RELEASE_AGE=0) so tools advance.
+# The Fedora updater must do the same, as the target user (mise toolchains are
+# per-$HOME), and best-effort so a failed tool build cannot block the update.
+t "update.sh upgrades mise tools as the target user" python3 -c "
+src = open('fedora/scripts/update.sh').read()
+assert 'omarchy_fedora_update_mise' in src, 'missing mise update helper'
+assert src.count('omarchy_fedora_update_mise') >= 2, 'helper must be defined and called'
+assert 'MISE_MINIMUM_RELEASE_AGE=0' in src, 'must override mise release-age cooldown'
+assert 'mise upgrade' in src, 'must run mise upgrade'
+assert 'runuser -u' in src, 'must drop to the target user when run as root'
+assert 'SUDO_USER' in src, 'must prefer SUDO_USER when choosing the target user'
+"
+
+echo "== Agents install via mise (matches upstream) =="
+# Upstream installs its coding-agent CLIs (opencode, codex, claude, ...) through
+# mise at user setup, not as RPMs. The Fedora layer must do the same: install.sh
+# runs the helper on fresh installs, a migration converges existing installs,
+# and the helper drives the vendored upstream install/user/mise.sh as the user.
+t "install.sh wires the mise agent setup" python3 -c "
+src = open('fedora/scripts/install.sh').read()
+assert 'lib/mise.sh' in src, 'must source the mise lib'
+assert 'omarchy_fedora_install_mise_tools' in src, 'must call the helper'
+"
+t "mise lib runs the vendored upstream mise.sh as the user" python3 -c "
+src = open('fedora/scripts/lib/mise.sh').read()
+assert 'install/user/mise.sh' in src, 'must run the upstream agent setup'
+assert 'runuser -u' in src, 'must drop to the target user when run as root'
+assert 'HOME=' in src, 'agent tools are per-user home'
+"
+t "mise-agents migration exists and calls the helper" python3 -c "
+import glob
+migs = glob.glob('fedora/migrations/*-mise-agents.sh')
+assert len(migs) == 1, migs
+src = open(migs[0]).read()
+assert 'omarchy_fedora_install_mise_tools' in src, 'must call the helper'
 "
 
 echo "== Elsewhen retire migration covers all users as themselves =="

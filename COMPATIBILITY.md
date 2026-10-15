@@ -29,7 +29,7 @@ mapped.
 |---|---|
 | fedora (official) | ~120 |
 | substitute | ~30 |
-| copr | ~11 + 25 first-party |
+| copr | ~11 + 24 first-party |
 | external (mise) | 1 |
 | unavailable | ~19 |
 | drop (Arch-only) | ~8 |
@@ -72,22 +72,28 @@ gpgcheck=1) enabled by the installer via `dnf config-manager --add-repo`. See
 `fedora/mappings/repositories.yaml` (entry `mise`).
 
 ### First-party Omarchy binaries (FIRST_PARTY, COPR `whelanh/omarchy`)
-25 Omarchy packages (`aether`, `cliamp`, `disktree-bin`, `gliff`,
+24 Omarchy packages (`aether`, `cliamp`, `disktree-bin`, `gliff`,
 `herdr`, `hype`, `hyprland-preview-share-picker`, `monologue`, `omacalc`,
 `omacut`, `omapresent`, `omarchy-emacs`, `omarchy-hyprland-titlebars`,
-`omawrite`, `omasnap`, `openai-codex-bin`, `openai-codex-desktop`, `owe`,
+`omawrite`, `omasnap`, `openai-codex-desktop`, `owe`,
 `owe-lockfeed`, `signed`, `superwhisper-bin`, `tensaku`, `tobi-try → try`,
 `ttfx`, `voxtype-bin`) are
 source-built or repacked as Fedora RPMs. Specs live in `fedora/rpm/` (one SPEC
 per package) with a `manifest.yaml` (repo, build system, license, status) and
-publish tooling in `fedora/rpm/copr/`. `elsewhen` was previously packaged here
-but is now **retired** (`status: retired`): upstream moved it in-tree as
-`omarchy.elsewhen` and drops the separate package, so the installer no longer
-installs it and `omarchy update` prunes it. Its spec is kept only as a
-reference for the Fedora-native migration that renames/dedups existing
-installs (`fedora/migrations/*-elsewhen-retire.sh`).
+publish tooling in `fedora/rpm/copr/`. Two former packages are now **retired**
+(`status: retired`): `elsewhen` (upstream moved it in-tree as
+`omarchy.elsewhen`) and `openai-codex-bin` (upstream installs the Codex CLI
+through mise, and `omarchy-upgrade-to-quattro` removes the old pacman package).
+The installer no longer installs either and `omarchy update` prunes them. The
+`elsewhen` spec is kept only as a reference for the Fedora-native migration
+that renames/dedups existing installs (`fedora/migrations/*-elsewhen-retire.sh`).
 
-**Status — 25 verified, 1 retired, 0 blocked.** Every verified package builds
+Agent/toolchain CLIs (opencode, codex, claude, and the rest of Omarchy's
+default agents) are **not** RPMs — upstream installs them through mise at user
+setup (`install/user/mise.sh` → `omarchy-mise-install`), and the Fedora layer
+does the same (`fedora/scripts/lib/mise.sh`).
+
+**Status — 24 verified, 2 retired, 0 blocked.** Every verified package builds
 cleanly in a Fedora Rawhide container and is published from the
 `whelanh/omarchy` COPR. The default installer enables that COPR and installs
 the set (disable with `install.sh --no-firstparty`).
@@ -130,7 +136,7 @@ session — no package manager. The installer wires them onto PATH by symlinking
 Caveats:
 - `omarchy plugin enable/disable` talk to the running shell via
   `omarchy-shell shell enablePlugin`, so Quickshell must be running.
-- The 25 first-party binary packages are built and published from the
+- The 24 first-party binary packages are built and published from the
   `whelanh/omarchy` COPR and installed by the default installer
   (`--no-firstparty` to skip); all are `verified` in `fedora/rpm/manifest.yaml`.
   (`elsewhen` is retired and no longer installed or published.)
@@ -156,7 +162,7 @@ Caveats:
 
 ## Known incompatibilities / open work
 
-1. **First-party RPM packaging (done)** — 25 Omarchy binaries built + published
+1. **First-party RPM packaging (done)** — 24 Omarchy binaries built + published
    from the `whelanh/omarchy` COPR (`fedora/rpm/`, see `fedora/rpm/copr/`) plus
    one retired spec kept for migrations. Installed by the default installer. CI
    re-verifies the specs on push.

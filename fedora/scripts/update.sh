@@ -10,7 +10,8 @@
 #      OMARCHY_FEDORA_UPDATE_UPSTREAM=1; otherwise re-apply what is committed
 #   4. re-apply the userspace (tree + CLI wiring + compat shims)
 #   5. run pending Omarchy migrations
-#   6. validate the installation
+#   6. upgrade mise-managed tools (as upstream's omarchy-update-mise does)
+#   7. validate the installation
 #
 # For end users this is what `omarchy update` runs (installed by install.sh as a
 # /usr/bin/omarchy-update shim). The live upstream pull needs a git checkout
@@ -54,6 +55,42 @@ omarchy_fedora_migrate() {
     fi && ran=1 || warn "migration $name failed (will retry next update)"
   done
   [ "$ran" = 1 ] || log "No pending Fedora migrations."
+}
+
+# Upgrade mise-managed tools ($HOME toolchain: coding agents, language runtimes).
+# Upstream runs `omarchy-update-mise` on every `omarchy update`; mise's
+# release-age cooldown otherwise holds tools back for days, and running the
+# update is the user asking for current versions now, so the cooldown is
+# overridden (MISE_MINIMUM_RELEASE_AGE=0). Tools are per-$HOME, so when the
+# updater itself runs as root (`sudo ./fedora/scripts/update.sh`) this drops to
+# the target account; otherwise the invoking user's own mise/HOME is already
+# right. Best-effort: a tool that fails to build must not block the update.
+omarchy_fedora_update_mise() {
+  if ! command -v mise >/dev/null 2>&1; then
+    log "mise not installed; skipping mise tools"
+    return 0
+  fi
+
+  local -a runner=()
+  if (( EUID == 0 )); then
+    local user="${TARGET_USER:-${SUDO_USER:-}}"
+    if [ -z "$user" ] || [ "$user" = root ]; then
+      user="$(awk -F: '$3>=1000 && $3<60000 {print $1; exit}' /etc/passwd)"
+    fi
+    if [ -z "$user" ]; then
+      warn "no target user found; skipping mise tools"
+      return 0
+    fi
+    if command -v runuser >/dev/null 2>&1; then
+      runner=(runuser -u "$user" --)
+    else
+      runner=(sudo -u "$user")
+    fi
+  fi
+
+  log "Updating mise-managed tools..."
+  "${runner[@]}" env MISE_MINIMUM_RELEASE_AGE=0 mise upgrade \
+    || warn "mise upgrade failed (continuing)"
 }
 
 # Fetch the Omarchy userspace directly from GitHub (quattro branch) and rsync it
@@ -172,7 +209,12 @@ fi
 # config changes. See fedora/migrations/README.md.
 omarchy_fedora_migrate
 
-# 6 — validation (lightweight summary; install.sh --update already validates).
+# 6 — mise-managed tools. Matches upstream, which always upgrades mise tools as
+# part of `omarchy update` (omarchy-update-mise). Runs with the user's HOME so
+# it updates their toolchain, not root's.
+omarchy_fedora_update_mise
+
+# 7 — validation (lightweight summary; install.sh --update already validates).
 log "Update complete."
 if [ -f /usr/share/omarchy/version ]; then
   log "Omarchy userspace version: $(cat /usr/share/omarchy/version)"

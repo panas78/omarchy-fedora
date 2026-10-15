@@ -77,12 +77,13 @@ The installer is **idempotent** — running it again is safe.
 > Note: Omarchy's first-party binaries and plugins (aether, cliamp, disktree-bin,
 > gliff, herdr, hype, hyprland-preview-share-picker, monologue,
 > omacalc, omacut, omapresent, omarchy-emacs, omarchy-hyprland-titlebars,
-> omawrite, omasnap, openai-codex-bin, openai-codex-desktop, owe, owe-lockfeed,
+> omawrite, omasnap, openai-codex-desktop, owe, owe-lockfeed,
 > signed, superwhisper-bin, tensaku, try, ttfx, voxtype-bin)
 > are built as Fedora
 > RPMs and installed from the `whelanh/omarchy` COPR by the installer (see
 > `fedora/rpm/copr/README.md`). Pass `--no-firstparty` to skip. (The `elsewhen`
-> world-clock plugin is retired: upstream moved it in-tree as `omarchy.elsewhen`.)
+> world-clock plugin is retired: upstream moved it in-tree as `omarchy.elsewhen`.
+> The Codex CLI is retired from RPM: upstream installs it via mise.)
 
 ## Update
 This repo runs a daily workflow to keep it in line with upstream Omarchy.  Users can

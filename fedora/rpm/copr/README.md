@@ -1,25 +1,27 @@
 # whelanh/omarchy COPR publishing
 
-This directory holds the tooling that publishes the 25 first-party Omarchy
+This directory holds the tooling that publishes the 24 first-party Omarchy
 RPMs (specs in `fedora/rpm/<pkg>/`) to the **`whelanh/omarchy`** COPR, so a
 stock Fedora install gets them with a plain `dnf install` — no local builds.
 
-## The 25 packages
+## The 24 packages
 
 aether, cliamp, disktree-bin, gliff, herdr, hype,
 hyprland-preview-share-picker, monologue, omacalc, omacut, omapresent,
-omarchy-emacs, omarchy-hyprland-titlebars, omawrite, omasnap, openai-codex-bin,
+omarchy-emacs, omarchy-hyprland-titlebars, omawrite, omasnap,
 openai-codex-desktop, owe, owe-lockfeed, signed, superwhisper-bin, tensaku,
 try (tobi-try), ttfx, voxtype-bin. All are `status: verified` in
 `fedora/rpm/manifest.yaml` and built green end-to-end on `fedora:rawhide`
-via `fedora/rpm/build-rpm-in-ci.sh`. (`elsewhen` is `status: retired`: upstream
-moved it in-tree as `omarchy.elsewhen`, so it is no longer built or published;
-its spec is kept only for the migration that cleans existing machines.)
+via `fedora/rpm/build-rpm-in-ci.sh`. (`elsewhen` and `openai-codex-bin` are
+`status: retired`: upstream moved Elsewhen in-tree as `omarchy.elsewhen`, and
+installs the Codex CLI through mise rather than pacman, so neither is built or
+published; their specs are kept only for the migrations that clean existing
+machines.)
 
 > `omapresent` is the successor to `hype`; upstream still lists `hype` in
 > `omarchy-base.packages`, so both are published for now.
 
-> `omarchy-emacs`, `voxtype-bin`, `openai-codex-bin` and `openai-codex-desktop`
+> `omarchy-emacs`, `voxtype-bin` and `openai-codex-desktop`
 > are published in the COPR but installed **on demand** (from the SUPER+SPACE
 > Install menu), not by the default first-party set.
 
@@ -124,6 +126,30 @@ sudo dnf install aether cliamp disktree-bin gliff herdr hype \
   `hyprland-devel` from the `nett00n/hyprland` per-chroot repo, so it must be
   rebuilt (bump `Release:` and resubmit) whenever that repo's Hyprland moves.
 
+## Retiring / removing a package
+
+Deleting `fedora/rpm/<pkg>/` and its `manifest.yaml` entry stops **new** builds
+— `auto-update.sh`, `check-updates.sh` and `submit-builds.sh` only touch
+`status: verified` packages — but the COPR keeps the source package and its
+build history, so `dnf copr enable` users still see the old package. Remove it
+from the project with:
+
+```sh
+bash fedora/rpm/copr/delete-retired.sh --dry-run   # show what would be deleted
+bash fedora/rpm/copr/delete-retired.sh             # delete them
+```
+
+It deletes every SRPM Name listed in `fedora/rpm/copr/retired-packages.conf`
+(currently `elsewhen` and `openai-codex-bin`, both retired: Elsewhen moved
+in-tree as `omarchy.elsewhen`, and the Codex CLI is installed through mise).
+The script is idempotent, so re-running it is harmless. `auto-update.sh
+--prune-retired` runs it automatically (best-effort) as part of the update, so a
+cron job / systemd timer keeps the COPR clean:
+
+```sh
+bash fedora/rpm/copr/auto-update.sh --yes --prune-retired
+```
+
 ## Checking for upstream updates
 
 ```sh
@@ -166,6 +192,9 @@ bash fedora/rpm/copr/auto-update.sh --yes
 
 # bump + build SRPMs locally, don't submit
 bash fedora/rpm/copr/auto-update.sh --yes --srpms-only
+
+# also delete retired packages from the COPR (see "Retiring / removing")
+bash fedora/rpm/copr/auto-update.sh --yes --prune-retired
 ```
 
 `auto-update.sh` automates the manual loop above. It considers only
@@ -174,8 +203,10 @@ bash fedora/rpm/copr/auto-update.sh --yes --srpms-only
 version from the spec (so a stale manifest can't hide a bump), and writes all
 edits only after every edit has succeeded. `--verify` additionally runs
 `build-rpm-in-ci.sh` before submitting, and `--chroot <name>` (repeatable)
-submits to specific chroots. Set `GITHUB_TOKEN`/`GH_TOKEN` (or use `gh auth
-token`) to avoid the 60-requests/hour unauthenticated API limit.
+submits to specific chroots. `--prune-retired` runs `delete-retired.sh`
+(best-effort) so retired packages are pulled from the COPR too; it is skipped
+with `--srpms-only` and previewed with `--dry-run`. Set `GITHUB_TOKEN`/`GH_TOKEN`
+(or use `gh auth token`) to avoid the 60-requests/hour unauthenticated API limit.
 
 ## Why COPR and not official Fedora
 

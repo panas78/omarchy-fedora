@@ -13,11 +13,17 @@
 #   fedora/rpm/copr/auto-update.sh --yes            # no confirmation prompt
 #   fedora/rpm/copr/auto-update.sh --srpms-only     # bump + build SRPMs, no submit
 #   fedora/rpm/copr/auto-update.sh --verify         # container-verify before submit
+#   fedora/rpm/copr/auto-update.sh --prune-retired  # also delete retired COPR packages
 #   fedora/rpm/copr/auto-update.sh --chroot fedora-45-x86_64
 #
 # Notes:
 #   - Only packages with `status: verified` in manifest.yaml are considered;
 #     the others are not part of the COPR.
+#   - With --prune-retired, delete-retired.sh removes the packages named in
+#     retired-packages.conf from the COPR (a retired package is gone from
+#     fedora/rpm/ + manifest.yaml, so nothing else here touches it, but the COPR
+#     keeps it until deleted). Best-effort: a prune failure warns, never blocks.
+#     Skipped with --srpms-only, and previewed with --dry-run.
 #   - Packages that share an upstream repo (owe + owe-lockfeed) are bumped
 #     together to the same version.
 #   - The current version is read from each spec, not the manifest, so a stale
@@ -53,6 +59,7 @@ Usage:
   auto-update.sh --yes            no confirmation prompt
   auto-update.sh --srpms-only     bump + build SRPMs, do not submit
   auto-update.sh --verify         container-verify before submitting
+  auto-update.sh --prune-retired  also delete retired packages from the COPR
   auto-update.sh --chroot <name>  submit to only this chroot (repeatable)
 EOF
 }
@@ -61,6 +68,7 @@ DRY_RUN=0
 ASSUME_YES=0
 SUBMIT_BUILDS=1
 VERIFY=0
+PRUNE_RETIRED=0
 CHROOTS=()
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -68,6 +76,7 @@ while [ $# -gt 0 ]; do
     --yes|-y)     ASSUME_YES=1 ;;
     --srpms-only|--no-submit) SUBMIT_BUILDS=0 ;;
     --verify)     VERIFY=1 ;;
+    --prune-retired) PRUNE_RETIRED=1 ;;
     --chroot)     CHROOTS+=("${2:?--chroot needs a value}"); shift ;;
     -h|--help)    usage; exit 0 ;;
     *) echo "unknown argument: $1" >&2; usage >&2; exit 2 ;;
@@ -246,6 +255,25 @@ if ! bash "$COP_DIR/check-updates.sh" --pins; then
   echo "NOTE: pinned omarchy-pkgs files changed upstream — review the diff, update"
   echo "      the commit SHA in the affected spec, bump Release: + a %changelog"
   echo "      entry, and resubmit that package."
+fi
+
+# Retired packages are gone from fedora/rpm/ + manifest.yaml, so no other step
+# here touches them — but the COPR keeps the source package and its build
+# history until deleted. --prune-retired removes them (retired-packages.conf);
+# best-effort so a login/network hiccup never blocks the version bumps.
+if [ "$PRUNE_RETIRED" = 1 ]; then
+  echo
+  if [ "$SUBMIT_BUILDS" = 0 ]; then
+    echo "== --srpms-only: skipping COPR prune of retired packages =="
+  elif [ "$DRY_RUN" = 1 ]; then
+    echo "== retired packages that would be pruned from $COPR =="
+    bash "$COP_DIR/delete-retired.sh" --dry-run || \
+      echo "NOTE: COPR prune preview failed (see above); continuing." >&2
+  else
+    echo "== pruning retired packages from $COPR =="
+    bash "$COP_DIR/delete-retired.sh" || \
+      echo "NOTE: COPR prune failed (see above); continuing." >&2
+  fi
 fi
 
 if [ ! -s "$PLAN" ]; then

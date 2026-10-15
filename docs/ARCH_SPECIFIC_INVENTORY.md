@@ -152,9 +152,10 @@ Categories:
   rebuilt or repacked as RPMs from `fedora/rpm/` — aether, cliamp, disktree-bin,
   gliff, herdr, hype, hyprland-preview-share-picker, monologue,
   omacalc, omacut, omapresent, omarchy-emacs, omarchy-hyprland-titlebars,
-  omawrite, omasnap, openai-codex-bin, openai-codex-desktop, owe, owe-lockfeed,
+  omawrite, omasnap, openai-codex-desktop, owe, owe-lockfeed,
   signed, superwhisper-bin, tensaku, tobi-try, ttfx, voxtype-bin.
-  (`elsewhen` is retired — upstream moved it in-tree as `omarchy.elsewhen`.)
+  (`elsewhen` is retired — upstream moved it in-tree as `omarchy.elsewhen`;
+  `openai-codex-bin` is retired — upstream installs the Codex CLI via mise.)
   `asdcontrol`,
   `usage` and `omarchy-nvim` are intentionally out of RPM scope (rationale in
   `fedora/rpm/README.md`).
