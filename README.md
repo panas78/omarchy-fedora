@@ -11,22 +11,17 @@ configuration, system integration, initramfs, and installation — while keeping
 the desktop/configuration code driven by upstream.
 
 The upstream Omarchy tree is vendored under [`upstream/`](upstream) via git
-subtree and stays authoritative. **This is not an independent fork of
-Omarchy.**
+subtree and stays authoritative. **This is not intended as an independent fork of
+Omarchy -- it is meant to duplicate the Omarchy experience as closely as possible
+.**
 
-This has been sucessfully deployed in Fedora Rawhide and in Fedora 44 
-(by [Lukas Dolzer](https://github.com/luke-29)).  Fedora Rawhide, Fedora 44 and
-Fedora 45 "1st party" packages are available in the COPR repo.
+This has been sucessfully deployed in Fedora Rawhide, Fedora 44 and Fedora 45.  Omarchy "1st party" packages are available in the COPR repo for all three Fedora versions.
 
 ---
 
 ## Status
 
-> **IN DEVELOPMENT.** This has been successfully run on VirtManager VMs,
-> and on Rawhide and Fedora 44 "bare metal" machines. Most/many features work and
-> the Super keys act as expected.  The update process has also been
-> tested.  However, there are no doubt still some
-> things to be ironed out.  Bug reports are welcome.
+> **IN DEVELOPMENT.**  Bug reports are welcome.
 
 <img width="1267" height="790" alt="screenshot-2026-09-02_12-59-51" src="https://github.com/user-attachments/assets/9e159b6e-e4f6-401c-8eaf-4c9fc7a546e7" />
 <img width="1273" height="790" alt="screenshot-2026-09-02_12-54-14" src="https://github.com/user-attachments/assets/ac7628ed-43a5-4a23-b6a5-a9b1dc451a22" />
@@ -34,7 +29,7 @@ Fedora 45 "1st party" packages are available in the COPR repo.
 
 ## Supported target
 
-- Fedora Rawhide, 44 or 45 **x86_64** (starting with Fedora Sway spin recommended although others have started from KDE)
+- Fedora Rawhide, 44 or 45 **x86_64** (starting with Fedora Sway spin recommended, although KDE is also a good starting point)
 
 ## Layout
 
@@ -69,7 +64,7 @@ sudo ./fedora/scripts/bootstrap.sh
 # your original desktop environment.  
 sudo ./fedora/scripts/install.sh --with-session-chooser
 
-sudo systemctl reboot
+systemctl reboot
 ```
 
 The installer is **idempotent** — running it again is safe.
