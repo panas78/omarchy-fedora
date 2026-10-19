@@ -118,6 +118,13 @@ jobs:
     # downloads build deps from the network and takes minutes).
     needs: list-rpms
     if: github.event_name != 'pull_request'
+    # The heaviest job in this matrix (gliff: a 12-crate Rust workspace built
+    # against gtk4 + libadwaita, with openh264 compiled from source) still
+    # finishes in ~7 minutes. 25 minutes is generous headroom, and it bounds a
+    # wedged dnf/cargo/network fetch so the job fails WITH logs instead of being
+    # killed silently — see run 39235962963, where a 49-minute attempt uploaded
+    # no log at all.
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -135,4 +142,7 @@ jobs:
       - name: Enable build-time repos (nett00n/hyprland)
         run: dnf -y copr enable nett00n/hyprland
       - name: Build ${{ matrix.package }}
+        # Bounds a single package build so a stall is attributed to the right
+        # step; the job-level timeout above is the outer backstop.
+        timeout-minutes: 20
         run: bash fedora/rpm/build-rpm-in-ci.sh ${{ matrix.package }}
