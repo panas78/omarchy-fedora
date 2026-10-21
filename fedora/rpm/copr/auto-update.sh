@@ -14,6 +14,7 @@
 #   fedora/rpm/copr/auto-update.sh --srpms-only     # bump + build SRPMs, no submit
 #   fedora/rpm/copr/auto-update.sh --verify         # container-verify before submit
 #   fedora/rpm/copr/auto-update.sh --prune-retired  # also delete retired COPR packages
+#   fedora/rpm/copr/auto-update.sh --no-watch       # submit, don't watch/self-heal
 #   fedora/rpm/copr/auto-update.sh --chroot fedora-45-x86_64
 #
 # Notes:
@@ -24,6 +25,12 @@
 #     fedora/rpm/ + manifest.yaml, so nothing else here touches it, but the COPR
 #     keeps it until deleted). Best-effort: a prune failure warns, never blocks.
 #     Skipped with --srpms-only, and previewed with --dry-run.
+#   - The submit step watches the COPR builds and self-heals chroots that failed
+#     for a recognised transient reason (e.g. the nett00n/hyprland build repo
+#     briefly 404ing while COPR's Pulp mirror resyncs), a bounded number of
+#     times. Real failures are reported, never retried. --no-watch restores the
+#     old fire-and-forget behaviour; COPR_RETRIES / COPR_RETRY_DELAY tune the
+#     retry budget.
 #   - Packages that share an upstream repo (owe + owe-lockfeed) are bumped
 #     together to the same version.
 #   - The current version is read from each spec, not the manifest, so a stale
@@ -60,6 +67,7 @@ Usage:
   auto-update.sh --srpms-only     bump + build SRPMs, do not submit
   auto-update.sh --verify         container-verify before submitting
   auto-update.sh --prune-retired  also delete retired packages from the COPR
+  auto-update.sh --no-watch       submit but don't watch/retry COPR builds
   auto-update.sh --chroot <name>  submit to only this chroot (repeatable)
 EOF
 }
@@ -69,6 +77,7 @@ ASSUME_YES=0
 SUBMIT_BUILDS=1
 VERIFY=0
 PRUNE_RETIRED=0
+NO_WATCH=0
 CHROOTS=()
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -77,6 +86,7 @@ while [ $# -gt 0 ]; do
     --srpms-only|--no-submit) SUBMIT_BUILDS=0 ;;
     --verify)     VERIFY=1 ;;
     --prune-retired) PRUNE_RETIRED=1 ;;
+    --no-watch)   NO_WATCH=1 ;;
     --chroot)     CHROOTS+=("${2:?--chroot needs a value}"); shift ;;
     -h|--help)    usage; exit 0 ;;
     *) echo "unknown argument: $1" >&2; usage >&2; exit 2 ;;
@@ -414,6 +424,9 @@ submit_args=()
 for c in "${CHROOTS[@]}"; do submit_args+=(--chroot "$c"); done
 if [ "$SUBMIT_BUILDS" = 0 ]; then
   submit_args+=(--srpms-only)
+fi
+if [ "$NO_WATCH" = 1 ]; then
+  submit_args+=(--no-watch)
 fi
 
 bash "$SUBMIT" "${submit_args[@]}" "${CHANGED[@]}"

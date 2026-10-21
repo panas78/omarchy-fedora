@@ -89,11 +89,30 @@ bash fedora/rpm/copr/submit-builds.sh --chroot fedora-45-x86_64
 
 # just produce SRPMs (in ~/rpmbuild-omarchy/SRPMS), don't submit:
 bash fedora/rpm/copr/submit-builds.sh --srpms-only
+
+# submit and return immediately, without watching (pre-self-heal behaviour):
+bash fedora/rpm/copr/submit-builds.sh --no-watch
+
+# tune the retry budget (also settable via COPR_RETRIES / COPR_RETRY_DELAY):
+bash fedora/rpm/copr/submit-builds.sh --retries 3 --retry-delay 120
 ```
 
-Watch: `copr-cli list-watch --output-format text` (unit status Succeeded /
-Failed). A failed build shows the exact mock error via:
-`copr-cli get-build <id>`.
+The script submits one SRPM per `copr-cli build` call, watches the resulting
+builds, and **self-heals transient failures**: if a chroot fails for a
+recognisable infrastructure reason, only that chroot is resubmitted. The case
+this exists for is the per-chroot `nett00n/hyprland` build repo briefly 404ing
+while COPR's Pulp mirror resyncs — mock dies before `rpmbuild` with
+`Failed to download metadata` / `Usable URL not found` / a `repomd.xml` 404.
+Retries are bounded (`COPR_RETRIES`, default 2) with a linear backoff
+(`COPR_RETRY_DELAY`, default 60s). Compile errors and unresolved
+`BuildRequires` do not match the transient pattern: they are reported and never
+retried.
+
+Manual inspection: `copr-cli status <id>` for per-chroot state and mock errors,
+`copr-cli watch-build <id>...` to follow a build, or the web page
+`https://copr.fedorainfracloud.org/coprs/whelanh/omarchy/build/<id>/`. Failed
+logs are published at
+`https://download.copr.fedorainfracloud.org/results/whelanh/omarchy/<chroot>/<id>-<pkg>/builder-live.log.gz`.
 
 ## 3. Consumers
 
@@ -195,6 +214,9 @@ bash fedora/rpm/copr/auto-update.sh --yes --srpms-only
 
 # also delete retired packages from the COPR (see "Retiring / removing")
 bash fedora/rpm/copr/auto-update.sh --yes --prune-retired
+
+# submit without watching/retrying the COPR builds
+bash fedora/rpm/copr/auto-update.sh --yes --no-watch
 ```
 
 `auto-update.sh` automates the manual loop above. It considers only
@@ -203,10 +225,13 @@ bash fedora/rpm/copr/auto-update.sh --yes --prune-retired
 version from the spec (so a stale manifest can't hide a bump), and writes all
 edits only after every edit has succeeded. `--verify` additionally runs
 `build-rpm-in-ci.sh` before submitting, and `--chroot <name>` (repeatable)
-submits to specific chroots. `--prune-retired` runs `delete-retired.sh`
-(best-effort) so retired packages are pulled from the COPR too; it is skipped
-with `--srpms-only` and previewed with `--dry-run`. Set `GITHUB_TOKEN`/`GH_TOKEN`
-(or use `gh auth token`) to avoid the 60-requests/hour unauthenticated API limit.
+submits to specific chroots. The submit step watches the builds and retries
+transient chroot failures as described in [Build + submit](#2-build--submit);
+`--no-watch` restores fire-and-forget. `--prune-retired` runs
+`delete-retired.sh` (best-effort) so retired packages are pulled from the COPR
+too; it is skipped with `--srpms-only` and previewed with `--dry-run`. Set
+`GITHUB_TOKEN`/`GH_TOKEN` (or use `gh auth token`) to avoid the
+60-requests/hour unauthenticated API limit.
 
 ## Why COPR and not official Fedora
 
