@@ -101,7 +101,7 @@ zbar
 zoxide
 
 # fonts / icons
-fontawesome-7-free-fonts
+fontawesome-6-free-fonts
 google-noto-color-emoji-fonts
 google-noto-sans-cjk-fonts
 google-noto-sans-fonts
